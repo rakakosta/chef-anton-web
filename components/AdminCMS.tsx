@@ -37,10 +37,11 @@ const FileUploader = ({ label, sizeGuidance, onUpload }: { label: string, sizeGu
 
 const AdminCMS: React.FC<Props> = ({ onExit }) => {
   const [data, setData] = useState<CMSData>(getCMSData());
-  const [activeTab, setActiveTab] = useState<'hero' | 'profile' | 'partners' | 'workshops' | 'recorded' | 'portfolio' | 'reviews' | 'footer'>('hero');
+  const [activeTab, setActiveTab] = useState<'hero' | 'profile' | 'partners' | 'workshops' | 'recorded' | 'portfolio' | 'reviews' | 'footer' | 'sync'>('hero');
   const [isSaved, setIsSaved] = useState(false);
-  const [reviewFilter, setReviewFilter] = useState<'All' | ReviewCategory>('All');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [importJson, setImportJson] = useState('');
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
   const handleSave = () => {
     saveCMSData(data);
@@ -52,6 +53,29 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
     if (window.confirm('Apakah Anda yakin ingin membatalkan semua perubahan?')) {
       setData(getCMSData());
     }
+  };
+
+  const handleImport = () => {
+    try {
+      const parsed = JSON.parse(importJson);
+      if (parsed.heroTitle && parsed.chefName) {
+        saveCMSData(parsed);
+        setData(parsed);
+        setSyncStatus({ type: 'success', message: 'Data berhasil di-import! Website akan diperbarui.' });
+        setImportJson('');
+      } else {
+        throw new Error('Format data tidak valid.');
+      }
+    } catch (e) {
+      setSyncStatus({ type: 'error', message: 'Gagal import: Pastikan kode yang dimasukkan benar.' });
+    }
+    setTimeout(() => setSyncStatus(null), 5000);
+  };
+
+  const handleCopyConfig = () => {
+    navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    setSyncStatus({ type: 'success', message: 'Kode konfigurasi berhasil disalin ke clipboard!' });
+    setTimeout(() => setSyncStatus(null), 3000);
   };
 
   const updateField = (field: keyof CMSData, value: any) => {
@@ -129,22 +153,16 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
     { id: 'portfolio', label: 'Portfolio', icon: '🖼️' },
     { id: 'reviews', label: 'Reviews', icon: '⭐️' },
     { id: 'footer', label: 'Footer Links', icon: '🔗' },
+    { id: 'sync', label: 'Sync Device', icon: '🔄' },
   ];
 
   return (
     <div className="min-h-screen bg-stone-50 flex font-sans overflow-hidden">
-      {/* Mobile Backdrop Overlay */}
       {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        ></div>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden" onClick={() => setIsSidebarOpen(false)}></div>
       )}
 
-      {/* Sidebar Nav (Desktop Sidebar / Mobile Drawer) */}
-      <aside className={`fixed inset-y-0 left-0 w-72 bg-slate-950 text-white flex flex-col shadow-2xl z-50 transform transition-transform duration-300 lg:static lg:translate-x-0 ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-slate-950 text-white flex flex-col shadow-2xl z-50 transform transition-transform duration-300 lg:static lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-8 lg:p-10 border-b border-white/5 flex justify-between items-center">
           <div>
             <h1 className="text-xl lg:text-2xl font-serif font-black text-gold uppercase tracking-tighter">Chef Portal</h1>
@@ -180,15 +198,10 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
         </div>
       </aside>
 
-      {/* Main Container */}
       <div className="flex-grow flex flex-col h-screen overflow-hidden">
-        {/* Responsive Header */}
         <header className="bg-white/80 backdrop-blur-md border-b border-stone-200 h-16 lg:h-24 flex items-center justify-between px-4 lg:px-12 shrink-0">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 bg-stone-100 rounded-lg text-slate-600 hover:bg-gold hover:text-white transition-colors"
-            >
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 bg-stone-100 rounded-lg text-slate-600 hover:bg-gold hover:text-white transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <h2 className="text-sm lg:text-xl font-serif font-black text-slate-900 uppercase tracking-widest truncate max-w-[150px] lg:max-w-none">
@@ -197,30 +210,80 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
           </div>
 
           <div className="flex items-center gap-2 lg:gap-4">
-            <button 
-              onClick={handleRestore} 
-              className="px-3 py-2.5 lg:px-8 lg:py-4 border border-stone-200 text-slate-400 text-[9px] lg:text-[11px] font-black uppercase rounded-full hover:bg-stone-50 hover:text-slate-600 transition-all"
-            >
+            <button onClick={handleRestore} className="px-3 py-2.5 lg:px-8 lg:py-4 border border-stone-200 text-slate-400 text-[9px] lg:text-[11px] font-black uppercase rounded-full hover:bg-stone-50 hover:text-slate-600 transition-all">
               <span className="hidden lg:inline">Restore Previous</span>
               <span className="lg:hidden">Restore</span>
             </button>
-            <button 
-              onClick={handleSave} 
-              className="px-4 py-2.5 lg:px-10 lg:py-4 bg-slate-900 text-white text-[9px] lg:text-[11px] font-black uppercase rounded-full hover:bg-gold transition-all shadow-xl"
-            >
+            <button onClick={handleSave} className="px-4 py-2.5 lg:px-10 lg:py-4 bg-slate-900 text-white text-[9px] lg:text-[11px] font-black uppercase rounded-full hover:bg-gold transition-all shadow-xl">
               <span className="hidden lg:inline">Publish Updates</span>
               <span className="lg:hidden">Publish</span>
             </button>
           </div>
         </header>
 
-        {/* Scrollable Content Area */}
         <main className="p-4 lg:p-12 overflow-y-auto flex-grow bg-stone-50/50">
           <div className="max-w-5xl mx-auto space-y-8 lg:space-y-12 pb-20">
             {isSaved && (
               <div className="bg-green-50 border border-green-100 p-4 rounded-xl flex items-center justify-center gap-3 animate-in fade-in slide-in-from-top-4">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
                 <span className="text-green-600 text-[10px] font-black uppercase tracking-widest">Saved Successfully</span>
+              </div>
+            )}
+
+            {activeTab === 'sync' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="bg-white p-8 lg:p-12 rounded-[2rem] md:rounded-[4rem] border border-stone-200 shadow-sm overflow-hidden relative">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                  
+                  <div className="relative z-10 space-y-10">
+                    <div>
+                      <span className="text-gold font-black uppercase tracking-widest text-[10px] mb-2 block">Device Syncing</span>
+                      <h3 className="text-3xl font-serif text-slate-900 mb-4">Pindahkan Data Antar-Perangkat</h3>
+                      <p className="text-slate-500 text-sm leading-relaxed max-w-2xl">
+                        Karena aplikasi ini bersifat privasi penuh, data Anda disimpan di browser perangkat ini. Gunakan fitur ini untuk memindahkan perubahan dari Laptop ke HP atau sebaliknya.
+                      </p>
+                    </div>
+
+                    {syncStatus && (
+                      <div className={`p-4 rounded-xl text-center text-[10px] font-black uppercase tracking-widest ${syncStatus.type === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                        {syncStatus.message}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                      <div className="bg-stone-50 p-8 rounded-3xl border border-stone-100 space-y-6">
+                        <div className="flex items-center gap-4 mb-2">
+                          <div className="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center text-xl">📤</div>
+                          <h4 className="font-serif text-xl">Langkah 1: Export</h4>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">Salin kode konfigurasi dari perangkat utama (Laptop) Anda.</p>
+                        <button onClick={handleCopyConfig} className="w-full py-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gold transition-all shadow-lg">Salin Kode Konfigurasi</button>
+                      </div>
+
+                      <div className="bg-stone-50 p-8 rounded-3xl border border-stone-100 space-y-6">
+                        <div className="flex items-center gap-4 mb-2">
+                          <div className="w-10 h-10 bg-gold text-white rounded-xl flex items-center justify-center text-xl">📥</div>
+                          <h4 className="font-serif text-xl">Langkah 2: Import</h4>
+                        </div>
+                        <p className="text-xs text-slate-400 leading-relaxed">Tempel (Paste) kode yang sudah disalin ke kolom di bawah pada perangkat tujuan (HP).</p>
+                        <textarea 
+                          value={importJson}
+                          onChange={(e) => setImportJson(e.target.value)}
+                          placeholder="Paste kode JSON di sini..."
+                          className="w-full bg-white border border-stone-200 rounded-xl p-4 text-[10px] font-mono h-32 outline-none focus:ring-2 focus:ring-gold"
+                        />
+                        <button onClick={handleImport} className="w-full py-4 bg-gold text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all shadow-lg">Ganti Data Perangkat Ini</button>
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                       <p className="text-[9px] text-amber-700 font-bold uppercase tracking-widest leading-relaxed">
+                         <span className="text-amber-900 block mb-1">⚠️ Perhatian:</span> 
+                         Melakukan "Import" akan menghapus seluruh data yang ada di perangkat ini dan menggantinya dengan data baru. Pastikan Anda sudah mem-publish perubahan di perangkat asal sebelum menyalin kode.
+                       </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
@@ -236,46 +299,23 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
                       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
                         <div className="flex-grow max-w-sm">
                           <label className="text-[10px] font-black uppercase tracking-widest text-gold mb-2 block">Judul Kategori</label>
-                          <input 
-                            className="w-full font-serif text-xl lg:text-2xl font-black bg-stone-50 border border-stone-100 rounded-xl p-3 lg:p-4" 
-                            value={category.title} 
-                            onChange={(e) => setData(prev => ({ ...prev, [catConfig.key]: { ...category, title: e.target.value } }))}
-                          />
+                          <input className="w-full font-serif text-xl lg:text-2xl font-black bg-stone-50 border border-stone-100 rounded-xl p-3 lg:p-4" value={category.title} onChange={(e) => setData(prev => ({ ...prev, [catConfig.key]: { ...category, title: e.target.value } }))} />
                         </div>
-                        <button 
-                          onClick={() => addFooterLink(catConfig.key as any)}
-                          className="px-6 py-3 bg-slate-900 text-white text-[9px] lg:text-[10px] font-black uppercase rounded-xl hover:bg-gold w-full md:w-auto"
-                        >
-                          + Tambah Link
-                        </button>
+                        <button onClick={() => addFooterLink(catConfig.key as any)} className="px-6 py-3 bg-slate-900 text-white text-[9px] lg:text-[10px] font-black uppercase rounded-xl hover:bg-gold w-full md:w-auto">+ Tambah Link</button>
                       </div>
-
                       <div className="space-y-3 lg:space-y-4">
                         {category.links.map((link) => (
                           <div key={link.id} className="grid grid-cols-1 md:grid-cols-12 gap-3 lg:gap-4 items-center bg-stone-50 p-4 rounded-2xl border border-stone-100 relative group">
                             <div className="md:col-span-5 space-y-1">
                               <label className="text-[8px] font-black uppercase text-slate-400">Label</label>
-                              <input 
-                                className="w-full bg-white text-[10px] font-bold p-2.5 rounded-lg border border-stone-200" 
-                                value={link.label}
-                                onChange={(e) => updateFooterLink(catConfig.key as any, link.id, { label: e.target.value })}
-                              />
+                              <input className="w-full bg-white text-[10px] font-bold p-2.5 rounded-lg border border-stone-200" value={link.label} onChange={(e) => updateFooterLink(catConfig.key as any, link.id, { label: e.target.value })} />
                             </div>
                             <div className="md:col-span-5 space-y-1">
                               <label className="text-[8px] font-black uppercase text-slate-400">URL Tujuan</label>
-                              <input 
-                                className="w-full bg-white text-[10px] p-2.5 rounded-lg border border-stone-200 font-mono" 
-                                value={link.url}
-                                onChange={(e) => updateFooterLink(catConfig.key as any, link.id, { url: e.target.value })}
-                              />
+                              <input className="w-full bg-white text-[10px] p-2.5 rounded-lg border border-stone-200 font-mono" value={link.url} onChange={(e) => updateFooterLink(catConfig.key as any, link.id, { url: e.target.value })} />
                             </div>
                             <div className="md:col-span-2 flex justify-end md:justify-center items-end pt-2">
-                              <button 
-                                onClick={() => removeFooterLink(catConfig.key as any, link.id)}
-                                className="text-red-400 hover:text-red-600 p-2 bg-red-50 md:bg-transparent rounded-lg"
-                              >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                              </button>
+                              <button onClick={() => removeFooterLink(catConfig.key as any, link.id)} className="text-red-400 hover:text-red-600 p-2 bg-red-50 md:bg-transparent rounded-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>
                             </div>
                           </div>
                         ))}
@@ -301,9 +341,7 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
                     </div>
                   </div>
                   <div className="bg-white p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-stone-200 flex flex-col items-center">
-                    <div className="aspect-[3/4] w-40 lg:w-48 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl mb-6">
-                      <img src={data.heroImage} className="w-full h-full object-cover" alt="" />
-                    </div>
+                    <div className="aspect-[3/4] w-40 lg:w-48 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl mb-6"><img src={data.heroImage} className="w-full h-full object-cover" alt="" /></div>
                     <FileUploader label="Update Hero Image" sizeGuidance="Portrait 3:4" onUpload={(b) => updateField('heroImage', b)} />
                   </div>
                 </div>
@@ -327,9 +365,7 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
                   </div>
                 </div>
                 <div className="bg-white p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-stone-200 flex flex-col items-center">
-                  <div className="aspect-[4/5] w-40 lg:w-48 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl mb-6">
-                    <img src={data.chefProfileImage} className="w-full h-full object-cover" alt="" />
-                  </div>
+                  <div className="aspect-[4/5] w-40 lg:w-48 rounded-2xl lg:rounded-3xl overflow-hidden shadow-xl mb-6"><img src={data.chefProfileImage} className="w-full h-full object-cover" alt="" /></div>
                   <FileUploader label="Update Profile Photo" sizeGuidance="Max 1.5MB" onUpload={(b) => updateField('chefProfileImage', b)} />
                 </div>
               </div>
@@ -344,9 +380,7 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
                 <div className="space-y-6">
                   {workshops.active.map(ws => (
                     <div key={ws.id} className="bg-white p-6 lg:p-10 rounded-3xl lg:rounded-[3rem] border border-stone-200 flex flex-col lg:flex-row gap-6 lg:gap-10">
-                      <div className="w-full lg:w-48 aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 shrink-0 shadow-lg">
-                        <img src={ws.image} className="w-full h-full object-cover" alt="" />
-                      </div>
+                      <div className="w-full lg:w-48 aspect-[3/4] rounded-2xl overflow-hidden bg-stone-100 shrink-0 shadow-lg"><img src={ws.image} className="w-full h-full object-cover" alt="" /></div>
                       <div className="flex-grow space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-1">
@@ -370,7 +404,6 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
               </div>
             )}
 
-            {/* Layout per tab lainnya disesuaikan secara serupa untuk mobile... */}
             {activeTab === 'recorded' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {(data.recordedClasses || []).map(rc => (
