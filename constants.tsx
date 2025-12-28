@@ -17,6 +17,9 @@ export const STOCK_IMAGES = {
   CERTIFICATE: "https://images.unsplash.com/photo-1589330694653-ded6df03f754?q=80&w=1000&auto=format&fit=crop",
 };
 
+// Added missing constant for Chef's actual photo to be used as default
+export const ACTUAL_CHEF_PHOTO = STOCK_IMAGES.CHEF_HERO;
+
 export const REVIEWS: Review[] = [
   {
     id: 'r1',

@@ -1,9 +1,16 @@
 
-import { WORKSHOPS, RECORDED_CLASSES, PORTFOLIO, REVIEWS, STOCK_IMAGES } from '../constants';
+import { createPool } from '@vercel/postgres';
+import { WORKSHOPS, RECORDED_CLASSES, PORTFOLIO, REVIEWS, STOCK_IMAGES, ACTUAL_CHEF_PHOTO } from '../constants';
 import { ReviewCategory, FooterCategory } from '../types';
 
-const STORAGE_KEY = 'CHEF_ANTON_CMS_DATA';
-const DATA_VERSION = '4.0'; 
+const DATA_VERSION = '7.0'; 
+
+/**
+ * Initialize Postgres Pool using the custom STORAGE_URL prefix provided by Vercel environment.
+ */
+const pool = createPool({
+  connectionString: process.env.STORAGE_URL
+});
 
 export interface Partner {
   id: string;
@@ -37,15 +44,6 @@ export interface CMSData {
   footerB2B: FooterCategory;
 }
 
-const DEFAULT_PARTNERS: Partner[] = [
-  { id: 'p1', name: 'Padma Hotel', logo: '🏨' },
-  { id: 'p2', name: 'Aryaduta', logo: '🏢' },
-  { id: 'p3', name: 'Grand Royal Panghegar', logo: '🏛️' },
-  { id: 'p4', name: 'eL Hotel', logo: '🏨' },
-  { id: 'p5', name: 'Gulf Catering Company', logo: '🇸🇦' },
-  { id: 'p6', name: 'NHI Bandung', logo: '🎓' },
-];
-
 const DEFAULT_DATA: CMSData = {
   version: DATA_VERSION,
   heroTitle: "Sistem Dapur Presisi. Profit Maksimal.",
@@ -56,12 +54,12 @@ const DEFAULT_DATA: CMSData = {
   heroCTA_Recorded_Desc: "Akses Selamanya",
   heroCTA_Consultancy_Title: "Private Audit",
   heroCTA_Consultancy_Desc: "Konsultasi Eksklusif",
-  heroImage: STOCK_IMAGES.CHEF_HERO,
+  heroImage: ACTUAL_CHEF_PHOTO,
   chefName: "Chef Anton Pradipta",
   chefTitle: "Executive Culinary Consultant & Academy",
   chefBio: "Sebagai koki profesional dengan pengalaman puluhan tahun, Chef Anton telah memimpin berbagai dapur prestisius dari Riyadh (Saudi Arabia) hingga hotel bintang 5 ternama di Indonesia.",
   chefBioQuote: "Satu hidangan legendaris tercipta dari seribu sistem yang dijalankan dengan disiplin emas.",
-  chefProfileImage: STOCK_IMAGES.CHEF_MAIN,
+  chefProfileImage: ACTUAL_CHEF_PHOTO,
   stockImages: STOCK_IMAGES,
   workshops: [...WORKSHOPS],
   recordedClasses: [...RECORDED_CLASSES],
@@ -70,7 +68,14 @@ const DEFAULT_DATA: CMSData = {
     ...r, 
     category: r.category as ReviewCategory 
   })),
-  partners: DEFAULT_PARTNERS,
+  partners: [
+    { id: 'p1', name: 'Padma Hotel', logo: '🏨' },
+    { id: 'p2', name: 'Aryaduta', logo: '🏢' },
+    { id: 'p3', name: 'Grand Royal Panghegar', logo: '🏛️' },
+    { id: 'p4', name: 'eL Hotel', logo: '🏨' },
+    { id: 'p5', name: 'Gulf Catering Company', logo: '🇸🇦' },
+    { id: 'p6', name: 'NHI Bandung', logo: '🎓' },
+  ],
   footerEducation: {
     title: "Pendidikan",
     links: [
@@ -91,28 +96,69 @@ const DEFAULT_DATA: CMSData = {
   }
 };
 
-export const getCMSData = (): CMSData => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed.version !== DATA_VERSION) {
-        localStorage.removeItem(STORAGE_KEY);
-        return DEFAULT_DATA;
+/**
+ * Ensures the database table exists for CMS data.
+ */
+async function initDatabase() {
+  try {
+    // We use JSONB for flexible schema storage in a single row configuration
+    await pool.sql`
+      CREATE TABLE IF NOT EXISTS chef_branding_cms (
+        id SERIAL PRIMARY KEY,
+        config JSONB NOT NULL,
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `;
+  } catch (err) {
+    console.error("Postgres init error:", err);
+  }
+}
+
+/**
+ * Fetches the latest CMS configuration from Vercel Postgres.
+ */
+export const getCMSData = async (): Promise<CMSData> => {
+  await initDatabase();
+  try {
+    const { rows } = await pool.sql`SELECT config FROM chef_branding_cms ORDER BY id DESC LIMIT 1;`;
+    if (rows && rows.length > 0) {
+      const data = rows[0].config as CMSData;
+      // Simple version check to ensure data compatibility
+      if (data.version === DATA_VERSION) {
+        return data;
       }
-      return parsed;
-    } catch (e) {
-      return DEFAULT_DATA;
     }
+  } catch (err) {
+    console.warn("Could not fetch from Postgres, using default data instead.");
   }
   return DEFAULT_DATA;
 };
 
-export const saveCMSData = (data: CMSData) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...data, version: DATA_VERSION }));
+/**
+ * Saves CMS configuration to Vercel Postgres, removing all dependency on localStorage.
+ */
+export const saveCMSData = async (data: CMSData) => {
+  try {
+    const jsonConfig = JSON.stringify({ ...data, version: DATA_VERSION });
+    await pool.sql`
+      INSERT INTO chef_branding_cms (config)
+      VALUES (${jsonConfig});
+    `;
+    console.log("CMS Data successfully persisted to Vercel Postgres");
+  } catch (err) {
+    console.error("Postgres save error:", err);
+    throw err;
+  }
 };
 
-export const resetToDefault = () => {
-  localStorage.removeItem(STORAGE_KEY);
-  window.location.reload();
+/**
+ * Resets the application data by clearing the database table.
+ */
+export const resetToDefault = async () => {
+  try {
+    await pool.sql`DELETE FROM chef_branding_cms;`;
+    window.location.reload();
+  } catch (err) {
+    console.error("Postgres reset error:", err);
+  }
 };

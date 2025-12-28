@@ -1,4 +1,5 @@
 
+import { put } from '@vercel/blob';
 import { GoogleGenAI } from "@google/genai";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -17,6 +18,42 @@ async function callWithRetry<T>(fn: () => Promise<T>, retries = 2, delay = 2000)
   }
 }
 
+/**
+ * Uploads an image file or base64 string directly to Vercel Blob storage.
+ * Uses the custom STORAGE_READ_WRITE_TOKEN provided by the user's Vercel configuration.
+ */
+export const uploadImageToBlob = async (file: File | string, filename: string): Promise<string> => {
+  try {
+    let dataToUpload: File | Blob;
+    
+    // Handle both File objects and base64 strings
+    if (typeof file === 'string' && file.startsWith('data:')) {
+      const response = await fetch(file);
+      dataToUpload = await response.blob();
+    } else if (file instanceof File) {
+      dataToUpload = file;
+    } else {
+      throw new Error("Invalid file format for upload");
+    }
+
+    const { url } = await put(`chef-anton/${Date.now()}-${filename}`, dataToUpload, {
+      access: 'public',
+      contentType: 'image/jpeg',
+      token: process.env.STORAGE_READ_WRITE_TOKEN
+    });
+
+    return url;
+  } catch (error) {
+    console.error("Vercel Blob Upload Error:", error);
+    // If upload fails, return the base64 as fallback so it still displays in the UI temporarily
+    return typeof file === 'string' ? file : "";
+  }
+};
+
+/**
+ * Generates a photorealistic AI image of the Chef using Gemini 2.5 Flash Image.
+ * Automatically saves the result to Vercel Blob for persistent hosting.
+ */
 export const generateChefImage = async (context: string): Promise<string> => {
   return callWithRetry(async () => {
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -47,13 +84,15 @@ export const generateChefImage = async (context: string): Promise<string> => {
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (part.inlineData?.data) {
-          return `data:image/png;base64,${part.inlineData.data}`;
+          const base64 = `data:image/png;base64,${part.inlineData.data}`;
+          // Persist the AI generated image to Vercel Blob
+          return await uploadImageToBlob(base64, 'generated-chef.png');
         }
       }
     }
     throw new Error("No image data found in response");
   }).catch(error => {
-    console.warn("Chef image generation failed after retries, using fallback.", error);
+    console.warn("Chef image generation failed, using fallback.", error);
     return "https://images.unsplash.com/photo-1583394293214-28ded15ee548?q=80&w=1000&auto=format&fit=crop";
   });
 };
@@ -85,7 +124,8 @@ export const generatePortfolioImage = async (prompt: string): Promise<string> =>
     if (candidate?.content?.parts) {
       for (const part of candidate.content.parts) {
         if (part.inlineData?.data) {
-          return `data:image/png;base64,${part.inlineData.data}`;
+          const base64 = `data:image/png;base64,${part.inlineData.data}`;
+          return await uploadImageToBlob(base64, 'generated-portfolio.png');
         }
       }
     }
@@ -110,7 +150,10 @@ export const generateWorkshopPoster = async (title: string): Promise<string> => 
     });
 
     for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+      if (part.inlineData) {
+        const base64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await uploadImageToBlob(base64, 'generated-workshop.png');
+      }
     }
     throw new Error("Failed");
   }).catch(() => "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=800");
@@ -132,7 +175,10 @@ export const generateCertificatePreview = async (): Promise<string> => {
     });
 
     for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+      if (part.inlineData) {
+        const base64 = `data:image/png;base64,${part.inlineData.data}`;
+        return await uploadImageToBlob(base64, 'generated-cert.png');
+      }
     }
     throw new Error("Failed");
   }).catch(() => "https://images.unsplash.com/photo-1589330694653-ded6df03f754?q=80&w=600");
