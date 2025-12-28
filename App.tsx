@@ -21,16 +21,12 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      console.log("[App] Starting data initialization...");
       setLoading(true);
       setError(null);
-      
       try {
         const data = await getCMSData();
-        console.log("[App] Data loaded successfully.");
         setCmsData(data);
       } catch (err) {
-        console.error("[App] Critical error loading data. Forcing fallback data.", err);
         setError("Failed to connect to database. Using offline data.");
         setCmsData(DEFAULT_DATA);
       } finally {
@@ -63,7 +59,6 @@ const App: React.FC = () => {
     if (currentPage === 'workshop-detail' && !selectedWorkshopId && workshopsData.active.length > 0) {
       return workshopsData.active[0];
     }
-    
     if (!selectedWorkshopId) return null;
     const allWorkshops = [...workshopsData.active, ...workshopsData.historical];
     return allWorkshops.find(w => String(w.id) === String(selectedWorkshopId)) || null;
@@ -83,13 +78,11 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center">
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-6"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Menghubungkan ke Database Chef...</p>
-        <p className="mt-4 text-[8px] text-slate-300 font-bold uppercase">Memuat konfigurasi Vercel Postgres</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Chef Anton is preparing the kitchen...</p>
       </div>
     );
   }
 
-  // If even after loading we have no data (unexpected), force a fallback display
   const finalCmsData = cmsData || DEFAULT_DATA;
 
   const handleViewWorkshopDetail = (id: string | null) => {
@@ -103,18 +96,12 @@ const App: React.FC = () => {
     setSelectedWorkshopId(null);
   };
 
-  const handleNavWorkshopClick = () => {
-    const active = workshopsData.active;
-    if (active.length > 0) {
-      handleViewWorkshopDetail(active[0].id);
-    } else {
-      handleViewWorkshopDetail(null);
-    }
-  };
-
   const commonNavProps = {
     onHomeClick: goToHome,
-    onWorkshopClick: handleNavWorkshopClick,
+    onWorkshopClick: () => {
+      const active = workshopsData.active;
+      handleViewWorkshopDetail(active.length > 0 ? active[0].id : null);
+    },
     onRecordedClick: () => {
       setCurrentPage('recorded-detail');
       window.scrollTo({ top: 0, behavior: 'instant' });
@@ -141,89 +128,105 @@ const App: React.FC = () => {
     }
 
     if (currentPage === 'recorded-detail') {
-      return (
-        <RecordedClassDetail 
-          onBack={goToHome} 
-          reviews={categorizedReviews.recorded} 
-        />
-      );
+      return <RecordedClassDetail onBack={goToHome} reviews={categorizedReviews.recorded} />;
     }
 
     if (currentPage === 'consultancy-detail') {
-      return (
-        <ConsultancyDetail 
-          onBack={goToHome} 
-          reviews={categorizedReviews.consultancy} 
-          partners={finalCmsData.partners}
-        />
-      );
+      return <ConsultancyDetail onBack={goToHome} reviews={categorizedReviews.consultancy} partners={finalCmsData.partners} />;
     }
 
     return (
-      <div id="home" className="scroll-mt-20">
+      <div id="home">
         <Hero 
           cmsData={finalCmsData}
-          onWorkshopClick={handleNavWorkshopClick} 
+          onWorkshopClick={commonNavProps.onWorkshopClick} 
           onRecordedClick={commonNavProps.onRecordedClick}
           onConsultancyClick={commonNavProps.onConsultancyClick}
         />
         
-        {error && (
-          <div className="bg-amber-50 py-2 text-center text-[8px] font-black uppercase text-amber-600 tracking-widest border-b border-amber-100">
-            ⚠️ Mode Offline Aktif: {error}
-          </div>
-        )}
-
-        <section className="py-16 md:py-32 bg-white overflow-hidden">
+        {/* Chef Bio Section */}
+        <section className="py-20 md:py-32 bg-white overflow-hidden border-b border-stone-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
-              <div className="relative">
-                <div className="absolute -top-10 -left-10 w-32 md:w-48 h-32 md:h-48 bg-orange-100 rounded-full blur-3xl opacity-40"></div>
-                <div className="relative aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-xl border-4 border-white bg-slate-50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24 items-center">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gold/5 rounded-[4rem] blur-2xl group-hover:bg-gold/10 transition-colors"></div>
+                <div className="relative aspect-[3/4] rounded-[3rem] md:rounded-[4rem] overflow-hidden shadow-2xl border-4 border-white">
                   <img src={finalCmsData.chefProfileImage} alt={finalCmsData.chefName} className="w-full h-full object-cover object-top" />
                 </div>
               </div>
-              <div className="relative">
-                <span className="text-orange-600 font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-4 md:mb-6 block">Maestro of Operations</span>
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-6 md:mb-10 leading-tight">{finalCmsData.chefName}</h2>
-                <p className="font-serif italic text-slate-900 border-l-4 border-orange-500 pl-6 md:pl-8 text-lg md:text-2xl mb-6 md:mb-8 leading-relaxed">"{finalCmsData.chefBioQuote}"</p>
-                <p className="text-slate-500 leading-relaxed text-sm md:text-lg">{finalCmsData.chefBio}</p>
+              <div>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">The Legacy of Excellence</span>
+                <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-8 leading-tight">{finalCmsData.chefName}</h2>
+                <p className="font-serif italic text-slate-900 border-l-4 border-gold pl-6 text-xl md:text-2xl mb-8 leading-relaxed">"{finalCmsData.chefBioQuote}"</p>
+                <p className="text-slate-500 leading-relaxed text-sm md:text-lg mb-10">{finalCmsData.chefBio}</p>
               </div>
             </div>
           </div>
         </section>
 
         <Partners partners={finalCmsData.partners} />
-        <Portfolio items={finalCmsData.portfolio} />
-        <Reviews customReviews={categorizedReviews.all} />
 
-        <section id="live-workshops" className="py-16 md:py-32 bg-white scroll-mt-20 border-t border-stone-100">
+        {/* 1. Live Workshop Section */}
+        <section id="live-workshops" className="py-20 md:py-32 bg-white scroll-mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-4 md:gap-8 text-center md:text-left">
-              <div>
-                <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-2 md:mb-4 block">Enrollment Ongoing</span>
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900">Live Workshops</h2>
-              </div>
+            <div className="text-center md:text-left mb-16">
+              <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">In-Person Experience</span>
+              <h2 className="text-4xl md:text-6xl font-serif text-slate-900 mb-6">Live Workshops</h2>
+              <p className="text-slate-400 max-w-2xl italic">"Belajar langsung teknik dan strategi operasional dalam sesi intensif tatap muka."</p>
             </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
               {workshopsData.active.length > 0 ? (
-                workshopsData.active.map(item => (
-                  <ClassCard key={item.id} item={item} onViewDetail={handleViewWorkshopDetail} />
-                ))
+                workshopsData.active.map(item => <ClassCard key={item.id} item={item} onViewDetail={handleViewWorkshopDetail} />)
               ) : (
-                <div className="col-span-full py-16 px-6 bg-stone-50 rounded-[2rem] md:rounded-[4rem] border-2 md:border-4 border-dashed border-stone-100 flex flex-col items-center text-center">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl shadow-lg mb-6">⏳</div>
-                  <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-4">Sesi Baru Segera Hadir</h3>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button onClick={commonNavProps.onRecordedClick} className="px-6 py-3.5 bg-gold text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all shadow-md">Kelas Rekaman</button>
-                    <button onClick={commonNavProps.onConsultancyClick} className="px-6 py-3.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gold transition-all shadow-md">Private Konsultasi</button>
-                  </div>
+                <div className="col-span-full py-20 bg-stone-50 rounded-[3rem] border-2 border-dashed border-stone-200 text-center">
+                  <p className="text-slate-400 font-serif italic mb-6">Batch baru sedang dalam perencanaan strategis.</p>
+                  <button onClick={commonNavProps.onRecordedClick} className="px-8 py-4 bg-gold text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">Lihat Kelas Rekaman</button>
                 </div>
               )}
             </div>
           </div>
         </section>
+
+        {/* 2. Portfolio Section */}
+        <Portfolio items={finalCmsData.portfolio} />
+
+        {/* 3. Academy Section */}
+        <section id="recorded-classes" className="py-20 md:py-32 bg-stone-50/50 scroll-mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+              <div>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">On-Demand Mastery</span>
+                <h2 className="text-4xl md:text-6xl font-serif text-slate-900">Academy Masterclasses</h2>
+              </div>
+              <button onClick={commonNavProps.onRecordedClick} className="px-10 py-5 bg-slate-950 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gold transition-all shadow-xl">Semua Masterclass</button>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {(finalCmsData.recordedClasses || []).slice(0, 3).map(item => <ClassCard key={item.id} item={item} />)}
+            </div>
+          </div>
+        </section>
+
+        {/* 4. Private Consultancy Section */}
+        <section id="consultancy" className="py-20 md:py-40 bg-slate-950 text-white relative overflow-hidden scroll-mt-20">
+          <div className="absolute inset-0 opacity-10 dot-pattern-gold"></div>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              <div>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-8 block">B2B Elite Advisory</span>
+                <h2 className="text-5xl md:text-7xl font-serif mb-10 leading-tight">Private Audit & Executive Consultancy</h2>
+                <p className="text-slate-400 text-xl mb-12 italic leading-relaxed font-serif">"Optimalkan profitabilitas dapur Anda dengan sistem manajemen standar internasional."</p>
+                <button onClick={commonNavProps.onConsultancyClick} className="px-12 py-6 bg-gold text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-white hover:text-slate-950 transition-all gold-glow">Request Business Audit</button>
+              </div>
+              <div className="relative aspect-video rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-2xl">
+                <img src={finalCmsData.stockImages.CHEF_MAIN} className="w-full h-full object-cover grayscale opacity-60" alt="Consultancy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Testimonials Section */}
+        <Reviews customReviews={categorizedReviews.all} />
       </div>
     );
   };

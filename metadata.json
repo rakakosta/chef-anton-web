@@ -1,8 +1,5 @@
 {
   "name": "Chef Personal Branding & Culinary Academy",
-  "description": "A premium personal branding platform for an elite Chef, featuring workshop bookings, on-demand masterclasses, and AI-powered professional consultancy previews for FnB entrepreneurs and professionals.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
+  "description": "A premium personal branding platform for an elite Chef, featuring workshop bookings, on-demand masterclasses, and professional consultancy for FnB entrepreneurs.",
+  "requestFramePermissions": []
 }
