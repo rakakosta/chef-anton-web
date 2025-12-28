@@ -10,20 +10,32 @@ import Footer from './components/Footer';
 import LiveWorkshopDetail from './pages/LiveWorkshopDetail';
 import RecordedClassDetail from './pages/RecordedClassDetail';
 import ConsultancyDetail from './pages/ConsultancyDetail';
-import { getCMSData, CMSData } from './services/dataService';
+import { getCMSData, CMSData, DEFAULT_DATA } from './services/dataService';
 
 const App: React.FC = () => {
   const [cmsData, setCmsData] = useState<CMSData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState<'home' | 'workshop-detail' | 'recorded-detail' | 'consultancy-detail'>('home');
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
+      console.log("[App] Starting data initialization...");
       setLoading(true);
-      const data = await getCMSData();
-      setCmsData(data);
-      setLoading(false);
+      setError(null);
+      
+      try {
+        const data = await getCMSData();
+        console.log("[App] Data loaded successfully.");
+        setCmsData(data);
+      } catch (err) {
+        console.error("[App] Critical error loading data. Forcing fallback data.", err);
+        setError("Failed to connect to database. Using offline data.");
+        setCmsData(DEFAULT_DATA);
+      } finally {
+        setLoading(false);
+      }
     };
     loadData();
   }, [currentPage]);
@@ -67,14 +79,18 @@ const App: React.FC = () => {
     };
   }, [cmsData]);
 
-  if (loading || !cmsData) {
+  if (loading && !cmsData) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center">
         <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-6"></div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Menghubungkan ke Database Chef...</p>
+        <p className="mt-4 text-[8px] text-slate-300 font-bold uppercase">Memuat konfigurasi Vercel Postgres</p>
       </div>
     );
   }
+
+  // If even after loading we have no data (unexpected), force a fallback display
+  const finalCmsData = cmsData || DEFAULT_DATA;
 
   const handleViewWorkshopDetail = (id: string | null) => {
     setSelectedWorkshopId(id);
@@ -138,7 +154,7 @@ const App: React.FC = () => {
         <ConsultancyDetail 
           onBack={goToHome} 
           reviews={categorizedReviews.consultancy} 
-          partners={cmsData.partners}
+          partners={finalCmsData.partners}
         />
       );
     }
@@ -146,33 +162,39 @@ const App: React.FC = () => {
     return (
       <div id="home" className="scroll-mt-20">
         <Hero 
-          cmsData={cmsData}
+          cmsData={finalCmsData}
           onWorkshopClick={handleNavWorkshopClick} 
           onRecordedClick={commonNavProps.onRecordedClick}
           onConsultancyClick={commonNavProps.onConsultancyClick}
         />
         
+        {error && (
+          <div className="bg-amber-50 py-2 text-center text-[8px] font-black uppercase text-amber-600 tracking-widest border-b border-amber-100">
+            ⚠️ Mode Offline Aktif: {error}
+          </div>
+        )}
+
         <section className="py-16 md:py-32 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
               <div className="relative">
                 <div className="absolute -top-10 -left-10 w-32 md:w-48 h-32 md:h-48 bg-orange-100 rounded-full blur-3xl opacity-40"></div>
                 <div className="relative aspect-[3/4] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-xl border-4 border-white bg-slate-50">
-                  <img src={cmsData.chefProfileImage} alt={cmsData.chefName} className="w-full h-full object-cover object-top" />
+                  <img src={finalCmsData.chefProfileImage} alt={finalCmsData.chefName} className="w-full h-full object-cover object-top" />
                 </div>
               </div>
               <div className="relative">
                 <span className="text-orange-600 font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-4 md:mb-6 block">Maestro of Operations</span>
-                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-6 md:mb-10 leading-tight">{cmsData.chefName}</h2>
-                <p className="font-serif italic text-slate-900 border-l-4 border-orange-500 pl-6 md:pl-8 text-lg md:text-2xl mb-6 md:mb-8 leading-relaxed">"{cmsData.chefBioQuote}"</p>
-                <p className="text-slate-500 leading-relaxed text-sm md:text-lg">{cmsData.chefBio}</p>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-6 md:mb-10 leading-tight">{finalCmsData.chefName}</h2>
+                <p className="font-serif italic text-slate-900 border-l-4 border-orange-500 pl-6 md:pl-8 text-lg md:text-2xl mb-6 md:mb-8 leading-relaxed">"{finalCmsData.chefBioQuote}"</p>
+                <p className="text-slate-500 leading-relaxed text-sm md:text-lg">{finalCmsData.chefBio}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <Partners partners={cmsData.partners} />
-        <Portfolio items={cmsData.portfolio} />
+        <Partners partners={finalCmsData.partners} />
+        <Portfolio items={finalCmsData.portfolio} />
         <Reviews customReviews={categorizedReviews.all} />
 
         <section id="live-workshops" className="py-16 md:py-32 bg-white scroll-mt-20 border-t border-stone-100">
@@ -210,7 +232,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-white selection:bg-gold/30">
       <Navbar {...commonNavProps} />
       {renderContent()}
-      <Footer data={cmsData} />
+      <Footer data={finalCmsData} />
     </div>
   );
 };

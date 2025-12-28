@@ -6,10 +6,11 @@ import { ReviewCategory, FooterCategory } from '../types';
 const DATA_VERSION = '7.0'; 
 
 /**
- * Initialize Postgres Pool using the custom STORAGE_URL prefix provided by Vercel environment.
+ * Initialize Postgres Pool using the custom STORAGE_URL prefix.
+ * Note: In a pure client-side environment, this might require specific Vercel Edge configuration.
  */
 const pool = createPool({
-  connectionString: process.env.STORAGE_URL
+  connectionString: process.env.STORAGE_URL || process.env.VITE_STORAGE_URL
 });
 
 export interface Partner {
@@ -44,7 +45,7 @@ export interface CMSData {
   footerB2B: FooterCategory;
 }
 
-const DEFAULT_DATA: CMSData = {
+export const DEFAULT_DATA: CMSData = {
   version: DATA_VERSION,
   heroTitle: "Sistem Dapur Presisi. Profit Maksimal.",
   heroSubtitle: "Transformasi operasional FnB dengan standar kualitas bintang lima. Tingkatkan efisiensi COGS dan bangun sistem dapur yang mandiri serta menguntungkan.",
@@ -100,8 +101,8 @@ const DEFAULT_DATA: CMSData = {
  * Ensures the database table exists for CMS data.
  */
 async function initDatabase() {
+  console.log("[DB] Initializing database check...");
   try {
-    // We use JSONB for flexible schema storage in a single row configuration
     await pool.sql`
       CREATE TABLE IF NOT EXISTS chef_branding_cms (
         id SERIAL PRIMARY KEY,
@@ -109,8 +110,10 @@ async function initDatabase() {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `;
+    console.log("[DB] Table 'chef_branding_cms' is ready.");
   } catch (err) {
-    console.error("Postgres init error:", err);
+    console.error("[DB] Initialization error (This is expected in browser-only environments):", err);
+    throw err; // Propagate to let getCMSData handle the fallback
   }
 }
 
@@ -118,35 +121,43 @@ async function initDatabase() {
  * Fetches the latest CMS configuration from Vercel Postgres.
  */
 export const getCMSData = async (): Promise<CMSData> => {
-  await initDatabase();
   try {
+    console.log("[CMS] Attempting to fetch data from Vercel Postgres...");
+    await initDatabase();
+    
     const { rows } = await pool.sql`SELECT config FROM chef_branding_cms ORDER BY id DESC LIMIT 1;`;
+    
     if (rows && rows.length > 0) {
       const data = rows[0].config as CMSData;
-      // Simple version check to ensure data compatibility
+      console.log("[CMS] Data successfully fetched from Postgres.");
       if (data.version === DATA_VERSION) {
         return data;
       }
+      console.warn("[CMS] Data version mismatch, falling back to default to prevent crash.");
+    } else {
+      console.log("[CMS] Database is empty. Providing default template.");
     }
   } catch (err) {
-    console.warn("Could not fetch from Postgres, using default data instead.");
+    console.error("[CMS] Connection to Vercel Postgres failed. Returning fallback data.", err);
   }
+  
   return DEFAULT_DATA;
 };
 
 /**
- * Saves CMS configuration to Vercel Postgres, removing all dependency on localStorage.
+ * Saves CMS configuration to Vercel Postgres.
  */
 export const saveCMSData = async (data: CMSData) => {
+  console.log("[CMS] Saving data to Postgres...");
   try {
     const jsonConfig = JSON.stringify({ ...data, version: DATA_VERSION });
     await pool.sql`
       INSERT INTO chef_branding_cms (config)
       VALUES (${jsonConfig});
     `;
-    console.log("CMS Data successfully persisted to Vercel Postgres");
+    console.log("[CMS] Data persisted successfully.");
   } catch (err) {
-    console.error("Postgres save error:", err);
+    console.error("[CMS] Failed to save data:", err);
     throw err;
   }
 };
@@ -156,9 +167,10 @@ export const saveCMSData = async (data: CMSData) => {
  */
 export const resetToDefault = async () => {
   try {
+    console.log("[DB] Clearing database content...");
     await pool.sql`DELETE FROM chef_branding_cms;`;
     window.location.reload();
   } catch (err) {
-    console.error("Postgres reset error:", err);
+    console.error("[DB] Reset error:", err);
   }
 };
