@@ -1,41 +1,8 @@
 
-import { createPool, Pool } from '@vercel/postgres';
 import { WORKSHOPS, RECORDED_CLASSES, PORTFOLIO, REVIEWS, STOCK_IMAGES, ACTUAL_CHEF_PHOTO } from '../constants';
 import { ReviewCategory, FooterCategory } from '../types';
 
 const DATA_VERSION = '7.0'; 
-
-// Mendapatkan connection string dari berbagai kemungkinan variabel Vercel/Vite
-const getConnectionString = () => {
-  return (
-    process.env.POSTGRES_URL || 
-    process.env.VITE_POSTGRES_URL || 
-    process.env.STORAGE_URL || 
-    process.env.VITE_STORAGE_URL ||
-    ""
-  );
-};
-
-const connectionString = getConnectionString();
-
-/**
- * Initialize Postgres Pool. 
- * We use a lazy initialization or a safe check to prevent crashing if the string is missing.
- */
-let pool: any = null;
-
-try {
-  if (connectionString) {
-    console.log("[DB] Connection string found. Initializing pool...");
-    pool = createPool({
-      connectionString: connectionString
-    });
-  } else {
-    console.warn("[DB] No connection string found (POSTGRES_URL is missing). Database features will be disabled.");
-  }
-} catch (e) {
-  console.error("[DB] Failed to create pool:", e);
-}
 
 export interface Partner {
   id: string;
@@ -122,90 +89,54 @@ export const DEFAULT_DATA: CMSData = {
 };
 
 /**
- * Ensures the database table exists for CMS data.
- */
-async function initDatabase() {
-  if (!pool) return;
-  console.log("[DB] Checking table schema...");
-  try {
-    await pool.sql`
-      CREATE TABLE IF NOT EXISTS chef_branding_cms (
-        id SERIAL PRIMARY KEY,
-        config JSONB NOT NULL,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );
-    `;
-    console.log("[DB] Schema check completed.");
-  } catch (err) {
-    console.error("[DB] Table initialization failed:", err);
-    throw err;
-  }
-}
-
-/**
- * Fetches the latest CMS configuration from Vercel Postgres.
+ * Fetches CMS configuration via Serverless API Proxy.
  */
 export const getCMSData = async (): Promise<CMSData> => {
   try {
-    if (!pool) {
-      console.log("[CMS] No database pool available. Using fallback data.");
-      return DEFAULT_DATA;
-    }
-
-    console.log("[CMS] Fetching from Vercel Postgres (using POSTGRES_URL)...");
-    await initDatabase();
+    console.log("[CMS] Fetching data via API Proxy...");
+    const response = await fetch('/api/cms');
     
-    const { rows } = await pool.sql`SELECT config FROM chef_branding_cms ORDER BY id DESC LIMIT 1;`;
-    
-    if (rows && rows.length > 0) {
-      const data = rows[0].config as CMSData;
-      console.log("[CMS] Data retrieved successfully.");
-      return data;
+    if (response.ok) {
+      const data = await response.json();
+      if (data) {
+        console.log("[CMS] Data retrieved from server successfully.");
+        return data;
+      }
     } else {
-      console.log("[CMS] Database is currently empty.");
+      console.warn("[CMS] Server returned error, using local fallback.");
     }
   } catch (err) {
-    console.error("[CMS] Database connection or query error:", err);
-    // Explicit check for common Vercel error
-    if (err instanceof Error && err.message.includes('missing_connection_string')) {
-      console.error("[CMS] CRITICAL: POSTGRES_URL is not being passed correctly to the client.");
-    }
+    console.error("[CMS] API Connection failed:", err);
   }
   
-  console.log("[CMS] Falling back to default constants.");
   return DEFAULT_DATA;
 };
 
 /**
- * Saves CMS configuration to Vercel Postgres.
+ * Saves CMS configuration via Serverless API Proxy.
  */
 export const saveCMSData = async (data: CMSData) => {
-  if (!pool) {
-    throw new Error("Database not connected. Cannot save changes.");
+  console.log("[CMS] Publishing changes via API Proxy...");
+  const response = await fetch('/api/cms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, version: DATA_VERSION })
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'Failed to save data');
   }
   
-  console.log("[CMS] Persisting changes to Postgres...");
-  try {
-    const jsonConfig = JSON.stringify({ ...data, version: DATA_VERSION });
-    await pool.sql`
-      INSERT INTO chef_branding_cms (config)
-      VALUES (${jsonConfig});
-    `;
-    console.log("[CMS] Changes published successfully.");
-  } catch (err) {
-    console.error("[CMS] Save failed:", err);
-    throw err;
-  }
+  console.log("[CMS] Changes persisted to Postgres.");
 };
 
 /**
- * Resets the application data by clearing the database table.
+ * Resets the application data.
  */
 export const resetToDefault = async () => {
-  if (!pool) return;
   try {
-    console.log("[DB] Executing reset...");
-    await pool.sql`DELETE FROM chef_branding_cms;`;
+    await fetch('/api/cms', { method: 'DELETE' });
     window.location.reload();
   } catch (err) {
     console.error("[DB] Reset failed:", err);
