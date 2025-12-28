@@ -6,7 +6,6 @@ import Partners from './components/Partners';
 import Reviews from './components/Reviews';
 import Portfolio from './components/Portfolio';
 import ClassCard from './components/ClassCard';
-import AICulinaryAssistant from './components/AICulinaryAssistant';
 import Footer from './components/Footer';
 import LiveWorkshopDetail from './pages/LiveWorkshopDetail';
 import RecordedClassDetail from './pages/RecordedClassDetail';
@@ -140,20 +139,20 @@ const App: React.FC = () => {
           onConsultancyClick={commonNavProps.onConsultancyClick}
         />
         
-        <section className="py-32 bg-white overflow-hidden">
+        <section className="py-16 md:py-32 bg-white overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-20 items-center">
               <div className="relative">
-                <div className="absolute -top-10 -left-10 w-48 h-48 bg-orange-100 rounded-full blur-3xl opacity-40"></div>
-                <div className="relative aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl border-4 border-white bg-slate-50">
+                <div className="absolute -top-10 -left-10 w-32 md:w-48 h-32 md:h-48 bg-orange-100 rounded-full blur-3xl opacity-40"></div>
+                <div className="relative aspect-[4/5] rounded-[2rem] md:rounded-[4rem] overflow-hidden shadow-xl border-4 border-white bg-slate-50">
                   <img src={cmsData.chefProfileImage} alt="Chef" className="w-full h-full object-cover" />
                 </div>
               </div>
               <div className="relative">
-                <span className="text-orange-600 font-black uppercase tracking-[0.3em] text-[10px] mb-6 block">Maestro of Operations</span>
-                <h2 className="text-5xl md:text-6xl font-serif text-slate-900 mb-10 leading-tight">{cmsData.chefName}</h2>
-                <p className="font-serif italic text-slate-900 border-l-4 border-orange-500 pl-8 text-2xl mb-8 leading-relaxed">"{cmsData.chefBioQuote}"</p>
-                <p className="text-slate-500 leading-relaxed text-lg">{cmsData.chefBio}</p>
+                <span className="text-orange-600 font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-4 md:mb-6 block">Maestro of Operations</span>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-6 md:mb-10 leading-tight">{cmsData.chefName}</h2>
+                <p className="font-serif italic text-slate-900 border-l-4 border-orange-500 pl-6 md:pl-8 text-lg md:text-2xl mb-6 md:mb-8 leading-relaxed">"{cmsData.chefBioQuote}"</p>
+                <p className="text-slate-500 leading-relaxed text-sm md:text-lg">{cmsData.chefBio}</p>
               </div>
             </div>
           </div>
@@ -163,30 +162,30 @@ const App: React.FC = () => {
         <Portfolio items={cmsData.portfolio} />
         <Reviews customReviews={categorizedReviews.all} />
 
-        <section id="live-workshops" className="py-32 bg-white scroll-mt-20 border-t border-stone-100">
+        <section id="live-workshops" className="py-16 md:py-32 bg-white scroll-mt-20 border-t border-stone-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8 text-center md:text-left">
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-4 md:gap-8 text-center md:text-left">
               <div>
-                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">Enrollment Ongoing</span>
-                <h2 className="text-5xl md:text-6xl font-serif text-slate-900">Live Professional Workshops</h2>
-                <p className="mt-4 text-slate-400 italic text-lg">"Belajar langsung dengan simulasi operasional nyata."</p>
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-2 md:mb-4 block">Enrollment Ongoing</span>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900">Live Workshops</h2>
+                <p className="mt-2 text-slate-400 italic text-sm md:text-lg">"Belajar langsung dengan simulasi operasional nyata."</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
               {workshopsData.active.length > 0 ? (
                 workshopsData.active.map(item => (
                   <ClassCard key={item.id} item={item} onViewDetail={handleViewWorkshopDetail} />
                 ))
               ) : (
-                <div className="col-span-full py-20 px-10 bg-stone-50 rounded-[4rem] border-4 border-dashed border-stone-100 flex flex-col items-center text-center">
-                  <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-4xl shadow-xl mb-8">⏳</div>
-                  <h3 className="text-2xl font-serif text-slate-900 mb-4">Belum Ada Sesi Aktif Terdekat</h3>
-                  <p className="text-slate-500 max-w-md mb-10">Saat ini Chef Anton sedang memantau operasional di lapangan. Sambil menunggu jadwal baru, Anda dapat mengeksplorasi opsi berikut:</p>
+                <div className="col-span-full py-16 px-6 bg-stone-50 rounded-[2rem] md:rounded-[4rem] border-2 md:border-4 border-dashed border-stone-100 flex flex-col items-center text-center">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-3xl shadow-lg mb-6">⏳</div>
+                  <h3 className="text-xl md:text-2xl font-serif text-slate-900 mb-4">Belum Ada Sesi Aktif</h3>
+                  <p className="text-slate-500 text-sm max-w-md mb-8">Saat ini Chef sedang memantau operasional. Sambil menunggu jadwal baru, silakan eksplorasi opsi berikut:</p>
                   
-                  <div className="flex flex-col sm:flex-row gap-6">
-                    <button onClick={commonNavProps.onRecordedClick} className="px-8 py-4 bg-gold text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-slate-900 transition-all shadow-xl">Beli Kelas Rekaman</button>
-                    <button onClick={commonNavProps.onConsultancyClick} className="px-8 py-4 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-gold transition-all shadow-xl">Private Konsultasi</button>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button onClick={commonNavProps.onRecordedClick} className="px-6 py-3.5 bg-gold text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all shadow-md">Kelas Rekaman</button>
+                    <button onClick={commonNavProps.onConsultancyClick} className="px-6 py-3.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-gold transition-all shadow-md">Private Konsultasi</button>
                   </div>
                 </div>
               )}
@@ -194,41 +193,41 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        <section id="recorded-classes" className="py-32 bg-slate-950 text-white relative rounded-[5rem] mx-4 mb-32 overflow-hidden shadow-2xl scroll-mt-20">
+        <section id="recorded-classes" className="py-16 md:py-32 bg-slate-950 text-white relative rounded-[2rem] md:rounded-[5rem] mx-2 md:mx-4 mb-20 md:mb-32 overflow-hidden shadow-2xl scroll-mt-20">
           <div className="absolute inset-0 opacity-10 dot-pattern-gold pointer-events-none"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="flex flex-col md:flex-row items-center justify-between mb-20 gap-10">
-              <div>
-                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-4 block">Academy Access</span>
-                <h2 className="text-4xl md:text-6xl font-serif mb-6">Video Masterclass Academy</h2>
-                <p className="text-slate-400 text-lg max-w-xl">Kuasai standar bintang lima secara mandiri.</p>
+            <div className="flex flex-col md:flex-row items-center justify-between mb-12 md:mb-20 gap-6 md:gap-10">
+              <div className="text-center md:text-left">
+                <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-2 md:mb-4 block">Academy Access</span>
+                <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-4">Masterclass Academy</h2>
+                <p className="text-slate-400 text-sm md:text-lg max-w-xl">Kuasai standar bintang lima secara mandiri.</p>
               </div>
-              <button onClick={commonNavProps.onRecordedClick} className="bg-gold text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl">Katalog Lengkap</button>
+              <button onClick={commonNavProps.onRecordedClick} className="bg-gold text-white px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl">Katalog Lengkap</button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
               {(cmsData.recordedClasses || []).slice(0, 4).map(item => <ClassCard key={item.id} item={item} />)}
             </div>
           </div>
         </section>
 
         {workshopsData.historical.length > 0 && (
-          <section className="py-32 bg-stone-50 border-t border-stone-100">
+          <section className="py-16 md:py-32 bg-stone-50 border-t border-stone-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-24">
-                <span className="text-gold font-black uppercase tracking-[0.4em] text-[10px] mb-4 block">Our Legacy</span>
-                <h2 className="text-5xl font-serif text-slate-900">Workshop Sebelumnya</h2>
+              <div className="text-center mb-16 md:mb-24">
+                <span className="text-gold font-black uppercase tracking-[0.4em] text-[8px] md:text-[10px] mb-2 md:mb-4 block">Our Legacy</span>
+                <h2 className="text-3xl md:text-5xl font-serif text-slate-900">Workshop Sebelumnya</h2>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                 {workshopsData.historical.map(pw => (
-                  <div key={pw.id} onClick={() => handleViewWorkshopDetail(pw.id)} className="group bg-white rounded-[4rem] border border-stone-100 p-8 flex gap-8 items-center hover:shadow-2xl cursor-pointer transition-all">
-                    <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden flex-shrink-0">
+                  <div key={pw.id} onClick={() => handleViewWorkshopDetail(pw.id)} className="group bg-white rounded-[2rem] md:rounded-[4rem] border border-stone-100 p-5 md:p-8 flex gap-5 md:gap-8 items-center hover:shadow-xl cursor-pointer transition-all">
+                    <div className="w-24 md:w-40 h-24 md:h-40 rounded-2xl md:rounded-[2.5rem] overflow-hidden flex-shrink-0">
                       <img src={pw.image} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" alt="" />
                     </div>
                     <div>
-                      <h3 className="text-2xl font-serif text-slate-900 group-hover:text-gold transition-colors">{pw.title}</h3>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">{pw.displayDate || new Date(pw.date || '').toLocaleDateString('id-ID')}</p>
-                      <span className="inline-block mt-4 text-[9px] font-black uppercase text-gold px-4 py-2 bg-gold/5 rounded-full border border-gold/10">
-                        {pw.realAttendance || 0} Alumni Terdaftar
+                      <h3 className="text-lg md:text-2xl font-serif text-slate-900 group-hover:text-gold transition-colors">{pw.title}</h3>
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 mt-1 md:mt-2">{pw.displayDate || new Date(pw.date || '').toLocaleDateString('id-ID')}</p>
+                      <span className="inline-block mt-2 md:mt-4 text-[7px] md:text-[9px] font-black uppercase text-gold px-3 py-1.5 md:px-4 md:py-2 bg-gold/5 rounded-full border border-gold/10">
+                        {pw.realAttendance || 0} Alumni
                       </span>
                     </div>
                   </div>
@@ -238,22 +237,19 @@ const App: React.FC = () => {
           </section>
         )}
 
-        <div id="consultancy" className="scroll-mt-20 bg-white pb-32">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-24">
-             <AICulinaryAssistant />
-          </div>
+        <div id="consultancy" className="scroll-mt-20 bg-white pb-16 md:pb-32">
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-stone-50 rounded-[5rem] p-10 md:p-24 border border-stone-100 flex flex-col lg:flex-row gap-20 items-center">
-               <div className="flex-grow">
-                 <span className="text-orange-600 font-black uppercase tracking-widest text-[10px] mb-6 block">Professional Strategy</span>
-                 <h2 className="text-5xl md:text-6xl font-serif mb-8 leading-tight">Private Executive Consultancy</h2>
-                 <p className="text-slate-500 max-w-lg mb-12 text-xl italic">"Transformasi operasional bisnis FnB Anda dengan standar akurasi industri hotel bintang lima global."</p>
-                 <button onClick={commonNavProps.onConsultancyClick} className="px-12 py-6 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[11px] rounded-2xl hover:bg-gold transition-all shadow-2xl">Inquiry Sekarang</button>
+            <div className="bg-stone-50 rounded-[2.5rem] md:rounded-[5rem] p-8 md:p-24 border border-stone-100 flex flex-col lg:flex-row gap-12 md:gap-20 items-center">
+               <div className="flex-grow text-center lg:text-left">
+                 <span className="text-orange-600 font-black uppercase tracking-widest text-[8px] md:text-[10px] mb-4 md:mb-6 block">Professional Strategy</span>
+                 <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif mb-6 md:mb-8 leading-tight">Executive Consultancy</h2>
+                 <p className="text-slate-500 max-w-lg mx-auto lg:mx-0 mb-8 md:mb-12 text-base md:text-xl italic leading-relaxed">"Transformasi operasional bisnis FnB Anda dengan standar akurasi industri global."</p>
+                 <button onClick={commonNavProps.onConsultancyClick} className="px-10 py-5 md:px-12 md:py-6 bg-slate-900 text-white font-black uppercase tracking-[0.3em] text-[9px] md:text-[11px] rounded-2xl hover:bg-gold transition-all shadow-xl">Inquiry Sekarang</button>
                </div>
-               <div className="w-full lg:w-[400px] aspect-square bg-white rounded-[4rem] shadow-2xl p-12 flex flex-col justify-center text-center">
-                  <div className="text-7xl mb-8">📈</div>
-                  <h4 className="font-serif text-3xl mb-4 text-slate-900">Strategic Audit</h4>
-                  <p className="text-xs text-slate-400 uppercase font-black leading-relaxed tracking-widest">Optimalisasi margin berbasis data.</p>
+               <div className="w-full lg:w-[400px] aspect-square bg-white rounded-[2rem] md:rounded-[4rem] shadow-xl p-8 md:p-12 flex flex-col justify-center text-center">
+                  <div className="text-5xl md:text-7xl mb-6 md:mb-8">📈</div>
+                  <h4 className="font-serif text-2xl md:text-3xl mb-3 md:mb-4 text-slate-900">Strategic Audit</h4>
+                  <p className="text-[8px] text-slate-400 uppercase font-black leading-relaxed tracking-widest">Optimalisasi margin berbasis data.</p>
                </div>
             </div>
           </section>

@@ -51,24 +51,19 @@ const Hero: React.FC<HeroProps> = ({ cmsData, onWorkshopClick, onRecordedClick, 
   ];
 
   return (
-    <div className="relative pt-32 pb-24 overflow-hidden gold-soft-gradient border-b border-stone-100">
+    <div className="relative pt-24 pb-16 md:pt-40 md:pb-32 overflow-hidden gold-soft-gradient border-b border-stone-100">
       <div className="absolute inset-0 z-0 dot-pattern-gold"></div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
           <div className="lg:col-span-7">
-            <span className="inline-block py-1.5 px-4 mb-6 border border-gold/30 bg-gold/5 text-gold text-[10px] font-black tracking-[0.2em] uppercase rounded-full">
+            <span className="inline-block py-1 px-3 mb-6 border border-gold/30 bg-gold/5 text-gold text-[8px] md:text-[10px] font-black tracking-[0.2em] uppercase rounded-full">
               30+ Years Legacy • The Gold Standard
             </span>
-            <h1 className="text-5xl md:text-7xl text-slate-900 font-serif mb-6 leading-[1.1]">
-              {cmsData.heroTitle.split('.').map((part, i) => (
-                <React.Fragment key={i}>
-                  {part}{i === 0 && cmsData.heroTitle.includes('.') ? '.' : ''}
-                  {i === 0 && <br/>}
-                </React.Fragment>
-              ))}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl text-slate-900 font-serif mb-6 leading-tight">
+              {cmsData.heroTitle}
             </h1>
-            <p className="text-xl text-slate-500 mb-12 max-w-xl leading-relaxed">
+            <p className="text-base md:text-xl text-slate-500 mb-10 max-w-xl leading-relaxed">
               {cmsData.heroSubtitle}
             </p>
             
@@ -90,22 +85,14 @@ const Hero: React.FC<HeroProps> = ({ cmsData, onWorkshopClick, onRecordedClick, 
                       onConsultancyClick();
                     }
                   }}
-                  className={`cursor-pointer group relative overflow-hidden p-6 rounded-[2rem] text-white shadow-xl transition-all duration-500 hover:-translate-y-2 ${card.bg} ${card.bg === 'bg-gold' ? 'gold-glow' : ''}`}
+                  className={`cursor-pointer group relative overflow-hidden p-5 md:p-6 rounded-[2rem] text-white shadow-lg transition-all duration-500 hover:-translate-y-1 ${card.bg} ${card.bg === 'bg-gold' ? 'gold-glow' : ''}`}
                 >
-                  <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-700">
-                    {card.icon}
-                  </div>
                   <div className="relative z-10">
-                    <div className="mb-4 bg-white/20 w-10 h-10 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                      {card.icon}
+                    <div className="mb-4 bg-white/20 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                      <div className="scale-75 md:scale-100">{card.icon}</div>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">{card.desc}</p>
-                    <h3 className="text-lg font-serif font-bold">{card.title}</h3>
-                    
-                    <div className="mt-6 flex items-center gap-2 text-[8px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-                      {(card.isWorkshop || card.isRecorded || card.isConsultancy) ? 'View Detail Page' : 'Detail Section'} 
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </div>
+                    <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">{card.desc}</p>
+                    <h3 className="text-base md:text-lg font-serif font-bold">{card.title}</h3>
                   </div>
                 </a>
               ))}
@@ -113,8 +100,8 @@ const Hero: React.FC<HeroProps> = ({ cmsData, onWorkshopClick, onRecordedClick, 
           </div>
 
           <div className="lg:col-span-5 relative group flex justify-center lg:justify-end mt-12 lg:mt-0">
-            <div className="absolute inset-0 bg-amber-500/10 rounded-[4rem] blur-3xl -z-10 scale-75"></div>
-            <div className="relative aspect-[3/4] w-full max-w-[360px] rounded-[3rem] overflow-hidden border-8 border-white shadow-2xl bg-slate-100">
+            <div className="absolute inset-0 bg-amber-500/10 rounded-[2.5rem] md:rounded-[4rem] blur-3xl -z-10 scale-75"></div>
+            <div className="relative aspect-[3/4] w-full max-w-[320px] md:max-w-[360px] rounded-[2.5rem] md:rounded-[3rem] overflow-hidden border-4 md:border-8 border-white shadow-2xl bg-slate-100">
               <img 
                 src={cmsData.heroImage} 
                 alt="Executive Chef" 
@@ -122,16 +109,10 @@ const Hero: React.FC<HeroProps> = ({ cmsData, onWorkshopClick, onRecordedClick, 
               />
               <div className="absolute inset-0 bg-gradient-to-t from-orange-950/40 via-transparent to-transparent"></div>
               
-              <div className="absolute bottom-6 left-6 right-6 p-4 bg-white/95 backdrop-blur-md border border-white rounded-[1.5rem] shadow-2xl text-center">
-                <p className="text-slate-900 font-black text-sm uppercase tracking-tighter">{cmsData.chefName}</p>
-                <p className="text-orange-600 text-[8px] uppercase font-black tracking-[0.2em] mt-1">{cmsData.chefTitle}</p>
+              <div className="absolute bottom-4 left-4 right-4 p-3 md:p-4 bg-white/95 backdrop-blur-md border border-white rounded-[1.2rem] md:rounded-[1.5rem] shadow-2xl text-center">
+                <p className="text-slate-900 font-black text-[10px] md:text-sm uppercase tracking-tighter">{cmsData.chefName}</p>
+                <p className="text-orange-600 text-[6px] md:text-[8px] uppercase font-black tracking-[0.2em] mt-1">{cmsData.chefTitle}</p>
               </div>
-            </div>
-            
-            {/* Experience Floating Badge */}
-            <div className="absolute -left-10 bottom-20 bg-white p-6 rounded-[2rem] shadow-2xl hidden xl:block border border-stone-100 animate-bounce">
-              <p className="text-3xl font-black text-slate-900">30+</p>
-              <p className="text-[8px] font-black uppercase tracking-widest text-gold">Years Excellence</p>
             </div>
           </div>
         </div>
