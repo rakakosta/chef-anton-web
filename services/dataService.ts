@@ -117,18 +117,32 @@ export const getCMSData = async (): Promise<CMSData> => {
  */
 export const saveCMSData = async (data: CMSData) => {
   console.log("[CMS] Publishing changes via API Proxy...");
-  const response = await fetch('/api/cms', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...data, version: DATA_VERSION })
-  });
-
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.error || 'Failed to save data');
-  }
   
-  console.log("[CMS] Changes persisted to Postgres.");
+  try {
+    const response = await fetch('/api/cms', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, version: DATA_VERSION })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: 'Unknown server error', message: errorText };
+      }
+      
+      console.error("[CMS] Publish failed:", errorData);
+      throw new Error(errorData.message || errorData.error || 'Failed to save data');
+    }
+    
+    console.log("[CMS] Changes persisted to Postgres successfully.");
+  } catch (error: any) {
+    console.error("[CMS] Error in saveCMSData:", error);
+    throw error;
+  }
 };
 
 /**

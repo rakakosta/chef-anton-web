@@ -17,6 +17,10 @@ export const uploadImageToBlob = async (file: File | string, filename: string): 
         reader.readAsDataURL(file);
       });
       contentType = file.type;
+    } else {
+      // Jika sudah berupa URL (bukan base64), kembalikan langsung
+      if (typeof file === 'string' && file.startsWith('http')) return file;
+      throw new Error("Invalid file format for upload");
     }
 
     const response = await fetch('/api/upload', {
@@ -30,14 +34,17 @@ export const uploadImageToBlob = async (file: File | string, filename: string): 
     });
 
     if (!response.ok) {
-      throw new Error('Upload failed via Proxy');
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || 'Upload failed via Proxy');
     }
 
     const data = await response.json();
     return data.url;
   } catch (error) {
     console.error("Blob Upload Proxy Error:", error);
-    return typeof file === 'string' ? file : "";
+    // JANGAN mengembalikan base64 string jika gagal, karena akan membuat JSON CMS terlalu besar
+    // Lemparkan error agar UI bisa menangani atau user tahu ada masalah koneksi
+    throw error;
   }
 };
 
