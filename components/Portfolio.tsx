@@ -12,8 +12,8 @@ const Portfolio: React.FC<Props> = ({ items }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12 md:mb-20">
           <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-2 md:mb-4 block">Selected Works</span>
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-4 md:mb-6">Culinary Portfolio</h2>
-          <p className="text-slate-400 italic text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">"Dari manajemen dapur internasional hingga revitalisasi kuliner hotel legendaris."</p>
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-serif text-slate-900 mb-4 md:mb-6">Portfolio Gallery</h2>
+          <p className="text-slate-400 italic text-sm md:text-lg max-w-2xl mx-auto leading-relaxed">"Untaian momen penuh dedikasi yang ikonik ."</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">

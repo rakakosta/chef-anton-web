@@ -11,7 +11,7 @@ export const NAV_ITEMS: NavItem[] = [
 export const WHATSAPP_NUMBER = "628123456789";
 
 export const STOCK_IMAGES = {
-  CHEF_MAIN: "https://images.unsplash.com/photo-1577214224211-89a903380e1e?q=80&w=1000&auto=format&fit=crop",
+  CHEF_MAIN: "https://images.unsplash.com/photo-1556911261-6bd741557938?q=80&w=1200&auto=format&fit=crop",
   CHEF_HERO: "https://images.unsplash.com/photo-1583394293214-28ded15ee548?q=80&w=1000&auto=format&fit=crop",
   WORKSHOP_POSTER: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=1000&auto=format&fit=crop",
   CERTIFICATE: "https://images.unsplash.com/photo-1589330694653-ded6df03f754?q=80&w=1000&auto=format&fit=crop",

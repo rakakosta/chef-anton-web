@@ -11,8 +11,8 @@ const Partners: React.FC<Props> = ({ partners = [] }) => {
     <section className="py-12 md:py-24 bg-white border-y border-stone-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10 md:mb-20">
-          <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-1 md:mb-2 block">Trusted By Industry Leaders</span>
-          <p className="text-slate-400 text-[10px] md:text-xs italic font-serif">Partner & Kolaborasi Strategis di Industri Hospitality</p>
+          <span className="text-gold font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] mb-1 md:mb-2 block">PROVEN TRACK RECORD</span>
+          <p className="text-slate-400 text-[10px] md:text-xs italic font-serif">Dipercaya oleh Brand F&B Ternama. Mulai dari Cafe,Warung Makan hingga Luxury Resto</p>
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-x-8 md:gap-x-12 gap-y-12 md:gap-y-24 items-center justify-items-center">

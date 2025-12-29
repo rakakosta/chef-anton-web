@@ -210,17 +210,11 @@ const App: React.FC = () => {
         <section id="consultancy" className="py-20 md:py-40 bg-slate-950 text-white relative overflow-hidden scroll-mt-20">
           <div className="absolute inset-0 opacity-10 dot-pattern-gold"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
-              <div>
-                <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-8 block">B2B Elite Advisory</span>
-                <h2 className="text-5xl md:text-7xl font-serif mb-10 leading-tight">Private Audit & Executive Consultancy</h2>
-                <p className="text-slate-400 text-xl mb-12 italic leading-relaxed font-serif">"Optimalkan profitabilitas dapur Anda dengan sistem manajemen standar internasional."</p>
-                <button onClick={commonNavProps.onConsultancyClick} className="px-12 py-6 bg-gold text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-white hover:text-slate-950 transition-all gold-glow">Request Business Audit</button>
-              </div>
-              <div className="relative aspect-video rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-2xl">
-                <img src={finalCmsData.stockImages.CHEF_MAIN} className="w-full h-full object-cover grayscale opacity-60" alt="Consultancy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent"></div>
-              </div>
+            <div className="max-w-4xl mx-auto text-center">
+              <span className="text-gold font-black uppercase tracking-[0.3em] text-[10px] mb-8 block">B2B Elite Advisory</span>
+              <h2 className="text-5xl md:text-7xl font-serif mb-10 leading-tight">Private Audit & Executive Consultancy</h2>
+              <p className="text-slate-400 text-xl mb-12 italic leading-relaxed font-serif">"Optimalkan profitabilitas dapur Anda dengan sistem manajemen standar internasional."</p>
+              <button onClick={commonNavProps.onConsultancyClick} className="px-12 py-6 bg-gold text-white text-[11px] font-black uppercase tracking-widest rounded-2xl hover:bg-white hover:text-slate-950 transition-all gold-glow">Request Business Audit</button>
             </div>
           </div>
         </section>
