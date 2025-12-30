@@ -1,26 +1,115 @@
 
 /**
- * Uploads an image via Serverless API Proxy to Vercel Blob.
+ * Ultra-Light Image Compression
+ * - Resolusi Maks: 800px (Sangat Cepat)
+ * - Kualitas: 0.5 JPEG (Sangat Aman untuk limit Vercel)
+ * - Agresif Memory Cleanup (Revoke ObjectURL)
+ * - Timeout: 8 detik
+ */
+const compressImage = async (file: File): Promise<{ base64: string, type: string }> => {
+  // 1. Validasi awal: Jika file > 10MB langsung tolak sebelum diproses
+  if (file.size > 10 * 1024 * 1024) throw new Error("File terlalu besar (Maks 10MB).");
+
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    const cleanup = () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      img.onload = null;
+      img.onerror = null;
+    };
+
+    // Timeout 8 detik
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error("Proses macet (Timeout). Coba file lebih kecil."));
+    }, 8000);
+
+    img.src = objectUrl;
+    img.onload = () => {
+      clearTimeout(timer);
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 800; 
+      let width = img.width;
+      let height = img.height;
+
+      if (width > MAX_WIDTH) {
+        height = Math.round((MAX_WIDTH / width) * height);
+        width = MAX_WIDTH;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      
+      // Optimasi memori: alpha false untuk mematikan transparansi (lebih ringan)
+      const ctx = canvas.getContext('2d', { alpha: false });
+      
+      if (!ctx) { 
+        cleanup(); 
+        return reject(new Error("Gagal menginisialisasi sistem gambar (Canvas Fail)")); 
+      }
+      
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'low'; // Prioritas kecepatan proses
+      
+      // Isi background putih (karena alpha false)
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, width, height);
+      
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Kualitas 0.5 (Paling aman untuk batas 4.5MB Vercel)
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+      cleanup();
+      
+      // Final size check
+      const stringLength = dataUrl.length - 'data:image/jpeg;base64,'.length;
+      const sizeInMb = (4 * Math.ceil(stringLength / 3) * 0.5624896334383812) / (1024 * 1024);
+
+      if (sizeInMb > 4.2) {
+        return reject(new Error("File terlalu besar bahkan setelah kompresi ekstrem."));
+      }
+
+      resolve({ base64: dataUrl, type: 'image/jpeg' });
+    };
+
+    img.onerror = () => { 
+      clearTimeout(timer);
+      cleanup(); 
+      reject(new Error("Format gambar tidak didukung atau file korup.")); 
+    };
+  });
+};
+
+/**
+ * Uploads an image via Serverless API Proxy to Vercel Blob with Global Compression.
  */
 export const uploadImageToBlob = async (file: File | string, filename: string): Promise<string> => {
   try {
     let base64Content = "";
     let contentType = "image/jpeg";
 
-    if (typeof file === 'string' && file.startsWith('data:')) {
+    // 1. Handle Compression if it's a raw File from input
+    if (file instanceof File) {
+      const compressed = await compressImage(file);
+      base64Content = compressed.base64;
+      contentType = compressed.type;
+    } 
+    // 2. Handle Base64 strings (from AI generation etc)
+    else if (typeof file === 'string' && file.startsWith('data:')) {
       base64Content = file;
       contentType = file.split(';')[0].split(':')[1];
-    } else if (file instanceof File) {
-      const reader = new FileReader();
-      base64Content = await new Promise((resolve) => {
-        reader.onloadend = () => resolve(reader.result as string);
-        reader.readAsDataURL(file);
-      });
-      contentType = file.type;
+      
+      const stringLength = base64Content.length - `data:${contentType};base64,`.length;
+      const sizeInMb = (4 * Math.ceil(stringLength / 3) * 0.5624896334383812) / (1024 * 1024);
+      if (sizeInMb > 4.5) throw new Error("File terlalu besar (Maksimal 4.5MB).");
+    } 
+    // 3. If it's already a URL, return it
+    else if (typeof file === 'string' && file.startsWith('http')) {
+      return file;
     } else {
-      // Jika sudah berupa URL (bukan base64), kembalikan langsung
-      if (typeof file === 'string' && file.startsWith('http')) return file;
-      throw new Error("Invalid file format for upload");
+      throw new Error("Format file tidak valid untuk diunggah");
     }
 
     const response = await fetch('/api/upload', {
@@ -35,20 +124,17 @@ export const uploadImageToBlob = async (file: File | string, filename: string): 
 
     if (!response.ok) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.message || 'Upload failed via Proxy');
+      throw new Error(errData.message || 'Gagal mengirim data ke server.');
     }
 
     const data = await response.json();
     return data.url;
-  } catch (error) {
-    console.error("Blob Upload Proxy Error:", error);
-    // JANGAN mengembalikan base64 string jika gagal, karena akan membuat JSON CMS terlalu besar
-    // Lemparkan error agar UI bisa menangani atau user tahu ada masalah koneksi
+  } catch (error: any) {
+    console.error("Blob Upload Error:", error);
     throw error;
   }
 };
 
-// ... other generation functions remain the same but will now use the updated uploadImageToBlob
 import { GoogleGenAI } from "@google/genai";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));

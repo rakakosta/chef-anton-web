@@ -68,34 +68,54 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
   const handleImageUpload = async (field: string, file: File, filename: string) => {
     if (!data) return;
 
-    // Local Preview instan untuk feedback visual tanpa membengkakkan payload state
-    const previewUrl = URL.createObjectURL(file);
-    setLocalPreviews(prev => ({ ...prev, [field]: previewUrl }));
-
+    // 1. Aktifkan loading state INSTAN sebelum proses kompresi
     setUploadingField(field);
+    
+    // 2. Gunakan preview sementara untuk responsivitas UI dan siapkan pembersihan memori
+    const tempUrl = URL.createObjectURL(file);
+    const oldLocalUrl = localPreviews[field];
+    
+    setLocalPreviews(prev => ({ ...prev, [field]: tempUrl }));
+    
+    // Revoke URL lama jika ada untuk cegah memory leak
+    if (oldLocalUrl && oldLocalUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(oldLocalUrl);
+    }
+
     try {
-      const url = await uploadImageToBlob(file, filename);
+      // 3. Jalankan kompresi & upload (dengan timeout 8s di service)
+      const cloudUrl = await uploadImageToBlob(file, filename);
       
+      // 4. Update state data dengan URL permanen
       if (field === 'heroImage' || field === 'chefProfileImage') {
-        updateField(field as keyof CMSData, url);
+        updateField(field as keyof CMSData, cloudUrl);
       } else if (field.includes(':')) {
         const [listKey, id] = field.split(':');
         const list = [...(data[listKey as keyof CMSData] as any[])];
         const index = list.findIndex(item => String(item.id) === String(id));
         if (index !== -1) {
-          if (listKey === 'partners') list[index].logo = url;
-          else if (listKey === 'reviews') list[index].avatar = url;
-          else list[index].image = url;
+          if (listKey === 'partners') list[index].logo = cloudUrl;
+          else if (listKey === 'reviews') list[index].avatar = cloudUrl;
+          else list[index].image = cloudUrl;
           setData({ ...data, [listKey as keyof CMSData]: list });
         }
       }
-    } catch (err) {
-      alert("Gagal mengunggah gambar ke cloud. Silakan coba lagi.");
+      
+      // Ganti preview blob dengan cloud URL dan revoke blobnya
+      setLocalPreviews(prev => ({ ...prev, [field]: cloudUrl }));
+      URL.revokeObjectURL(tempUrl);
+      
+    } catch (err: any) {
+      // 5. Tampilkan detail error spesifik (Timeout, Canvas Fail, dll)
+      alert(err.message || "Gagal mengunggah gambar. Pastikan file valid.");
+      
+      // Jika gagal, hapus preview sementara dan bersihkan memori
       setLocalPreviews(prev => {
         const next = { ...prev };
         delete next[field];
         return next;
       });
+      URL.revokeObjectURL(tempUrl);
     } finally {
       setUploadingField(null);
     }
@@ -182,7 +202,7 @@ const AdminCMS: React.FC<Props> = ({ onExit }) => {
               ) : uploadingField ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Wait: Uploading Image...
+                  Wait: Processing...
                 </>
               ) : (
                 <>
