@@ -276,7 +276,7 @@ const ConsultancyDetail: React.FC<Props> = ({ onBack, reviews, partners }) => {
            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center items-center">
              {[
                { val: "30+", label: "Years Exp" },
-               { val: "5-Star Review", label: "F&B Clients" },
+               { val: "5-Star Reviews", label: "F&B Clients" },
                { val: "High Quality", label: "Standard" },
                { val: "Elite", label: "Advisory" }
              ].map((stat, i) => (

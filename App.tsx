@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter, Routes, Route, useNavigate, useLocation, useParams } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -76,6 +75,11 @@ const ScrollToTop = () => {
 const HomeView = ({ data }: { data: CMSData }) => {
   const navigate = useNavigate();
   
+  // SEO Native Dynamic Title
+  useEffect(() => {
+    document.title = "Chef Anton Pradipta | Culinary Business Consultant & Academy";
+  }, []);
+
   const workshopsData = useMemo(() => {
     const now = new Date();
     const list = data.workshops || [];
@@ -222,6 +226,13 @@ const WorkshopDetailView = ({ data }: { data: CMSData }) => {
     return data.workshops.find(w => String(w.id) === String(id)) || null;
   }, [data.workshops, id]);
 
+  // SEO Native Dynamic Title
+  useEffect(() => {
+    if (workshop) {
+      document.title = `${workshop.title} | Chef Anton Pradipta Workshop`;
+    }
+  }, [workshop]);
+
   const historical = useMemo(() => {
     return data.workshops.filter(w => w.isHistorical);
   }, [data.workshops]);
@@ -254,10 +265,12 @@ const AcademyDetailView = ({ data }: { data: CMSData }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   
+  // SEO Native Dynamic Title
+  useEffect(() => {
+    document.title = "Culinary Academy Masterclasses | Chef Anton Pradipta";
+  }, []);
+
   const reviews = useMemo(() => data.reviews.filter(r => r.category === 'Kelas Rekaman'), [data.reviews]);
-  
-  // If ID is provided, it can be used for specific logic in RecordedClassDetail if needed
-  // For now, the RecordedClassDetail handles the catalog display
   
   return (
     <RecordedClassDetail 
@@ -267,6 +280,23 @@ const AcademyDetailView = ({ data }: { data: CMSData }) => {
     />
   );
 };
+
+const ConsultancyDetailView = ({ data }: { data: CMSData }) => {
+  const navigate = useNavigate();
+
+  // SEO Native Dynamic Title
+  useEffect(() => {
+    document.title = "Private B2B Consultancy | Chef Anton Pradipta";
+  }, []);
+
+  return (
+    <ConsultancyDetail 
+      onBack={() => navigate('/')} 
+      reviews={data.reviews.filter(r => r.category === 'Private Consultancy')} 
+      partners={data.partners} 
+    />
+  );
+}
 
 // --- App Root ---
 
@@ -328,7 +358,7 @@ const AppContent = () => {
         <Route path="/workshop/:id" element={<WorkshopDetailView data={finalData} />} />
         <Route path="/academy" element={<AcademyDetailView data={finalData} />} />
         <Route path="/recorded-class/:id" element={<AcademyDetailView data={finalData} />} />
-        <Route path="/consultancy" element={<ConsultancyDetail onBack={() => navigate('/')} reviews={finalData.reviews.filter(r => r.category === 'Private Consultancy')} partners={finalData.partners} />} />
+        <Route path="/consultancy" element={<ConsultancyDetailView data={finalData} />} />
       </Routes>
 
       <Footer data={finalData} />
