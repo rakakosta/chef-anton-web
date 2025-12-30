@@ -128,7 +128,13 @@ const App: React.FC = () => {
     }
 
     if (currentPage === 'recorded-detail') {
-      return <RecordedClassDetail onBack={goToHome} reviews={categorizedReviews.recorded} />;
+      return (
+        <RecordedClassDetail 
+          onBack={goToHome} 
+          reviews={categorizedReviews.recorded} 
+          recordedClasses={finalCmsData.recordedClasses} 
+        />
+      );
     }
 
     if (currentPage === 'consultancy-detail') {
@@ -201,7 +207,22 @@ const App: React.FC = () => {
               <button onClick={commonNavProps.onRecordedClick} className="px-10 py-5 bg-slate-950 text-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-gold transition-all shadow-xl">Semua Masterclass</button>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {(finalCmsData.recordedClasses || []).slice(0, 3).map(item => <ClassCard key={item.id} item={item} />)}
+              {(finalCmsData.recordedClasses || []).length > 0 ? (
+                (finalCmsData.recordedClasses || []).slice(0, 3).map(item => <ClassCard key={item.id} item={item} />)
+              ) : (
+                <div className="col-span-full">
+                  <div className="bg-white rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-lg border border-stone-100 opacity-60 flex flex-col">
+                    <div className="aspect-[4/3] bg-stone-200 flex flex-col items-center justify-center p-10 text-center">
+                      <p className="text-3xl md:text-4xl font-serif font-black text-slate-400 mb-2">COMING SOON</p>
+                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-400">Materi eksklusif sedang dalam proses produksi.</p>
+                    </div>
+                    <div className="p-8 md:p-10 space-y-4">
+                      <div className="h-4 bg-stone-100 rounded-full w-3/4"></div>
+                      <div className="h-4 bg-stone-100 rounded-full w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>

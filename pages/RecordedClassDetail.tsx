@@ -1,21 +1,22 @@
 
 import React, { useState, useEffect } from 'react';
-import { RECORDED_CLASSES, WHATSAPP_NUMBER } from '../constants';
+import { WHATSAPP_NUMBER } from '../constants';
 import { CulinaryClass, Review } from '../types';
 import Reviews from '../components/Reviews';
 
 interface Props {
   onBack: () => void;
   reviews: Review[];
+  recordedClasses: CulinaryClass[];
 }
 
-const RecordedClassDetail: React.FC<Props> = ({ onBack, reviews }) => {
+const RecordedClassDetail: React.FC<Props> = ({ onBack, reviews, recordedClasses }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
   
-  const totalPages = Math.ceil(RECORDED_CLASSES.length / itemsPerPage);
+  const totalPages = Math.ceil(recordedClasses.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentItems = RECORDED_CLASSES.slice(startIndex, startIndex + itemsPerPage);
+  const currentItems = recordedClasses.slice(startIndex, startIndex + itemsPerPage);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -37,7 +38,7 @@ const RecordedClassDetail: React.FC<Props> = ({ onBack, reviews }) => {
             className="mb-10 flex items-center gap-2 text-gold font-black uppercase tracking-widest text-[10px] hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-            Kembali ke Beranda
+            ← KEMBALI
           </button>
           
           <div className="max-w-3xl">
@@ -57,65 +58,76 @@ const RecordedClassDetail: React.FC<Props> = ({ onBack, reviews }) => {
               Katalog Kelas Premium
             </h2>
             <div className="text-slate-400 text-xs font-bold uppercase tracking-widest">
-              Menampilkan {startIndex + 1}-{Math.min(startIndex + itemsPerPage, RECORDED_CLASSES.length)} dari {RECORDED_CLASSES.length} Video
+              {recordedClasses.length > 0 
+                ? `Menampilkan ${startIndex + 1}-${Math.min(startIndex + itemsPerPage, recordedClasses.length)} dari ${recordedClasses.length} Video`
+                : 'Belum ada materi tersedia'}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {currentItems.map((item) => (
-              <div key={item.id} className="group flex flex-col bg-white rounded-[3rem] border border-stone-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
-                <div className="relative aspect-video overflow-hidden">
-                  <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-                  <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors"></div>
-                  
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-16 h-16 bg-gold text-white rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
-                      <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
-                    </div>
-                  </div>
-
-                  <div className="absolute top-4 left-4 flex flex-col gap-2">
-                    <span className="px-4 py-1.5 bg-slate-900/90 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-full border border-white/10">
-                      {item.level} Level
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-10 flex flex-col flex-grow">
-                  <div className="flex-grow">
-                    <h3 className="text-xl font-serif text-slate-900 mb-4 group-hover:text-gold transition-colors line-clamp-2">{item.title}</h3>
-                    <p className="text-slate-500 text-sm mb-8 leading-relaxed line-clamp-2 italic">"{item.description}"</p>
+            {recordedClasses.length > 0 ? (
+              currentItems.map((item) => (
+                <div key={item.id} className="group flex flex-col bg-white rounded-[3rem] border border-stone-100 shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden">
+                  <div className="relative aspect-video overflow-hidden">
+                    <img src={item.image} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                    <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-slate-900/10 transition-colors"></div>
                     
-                    <div className="flex flex-wrap gap-4 mb-8">
-                       <div className="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100">
-                         <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.duration}</span>
-                       </div>
-                       <div className="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100">
-                         <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-                         <span className="text-[10px] font-black uppercase tracking-widest text-gold">{item.soldCount?.toLocaleString()} Terjual</span>
-                       </div>
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="w-16 h-16 bg-gold text-white rounded-full flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform">
+                        <svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="pt-8 border-t border-stone-50 flex items-center justify-between">
-                    <div>
-                      <span className="block text-[8px] text-slate-400 uppercase font-black tracking-[0.2em] mb-1">Lifetime Access</span>
-                      <span className="text-xl font-black text-slate-900">
-                         {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                    <div className="absolute top-4 left-4 flex flex-col gap-2">
+                      <span className="px-4 py-1.5 bg-slate-900/90 backdrop-blur-md text-white text-[8px] font-black uppercase tracking-widest rounded-full border border-white/10">
+                        {item.level} Level
                       </span>
                     </div>
-                    <button 
-                      onClick={() => handlePurchase(item)}
-                      className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gold transition-all active:scale-95 shadow-lg"
-                    >
-                      Beli Akses
-                    </button>
+                  </div>
+
+                  <div className="p-10 flex flex-col flex-grow">
+                    <div className="flex-grow">
+                      <h3 className="text-xl font-serif text-slate-900 mb-4 group-hover:text-gold transition-colors line-clamp-2">{item.title}</h3>
+                      <p className="text-slate-500 text-sm mb-8 leading-relaxed line-clamp-2 italic">"{item.description}"</p>
+                      
+                      <div className="flex flex-wrap gap-4 mb-8">
+                         <div className="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100">
+                           <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                           <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.duration}</span>
+                         </div>
+                         <div className="flex items-center gap-2 bg-stone-50 px-4 py-2 rounded-2xl border border-stone-100">
+                           <svg className="w-4 h-4 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                           <span className="text-[10px] font-black uppercase tracking-widest text-gold">{item.soldCount?.toLocaleString()} Terjual</span>
+                         </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-8 border-t border-stone-50 flex items-center justify-between">
+                      <div>
+                        <span className="block text-[8px] text-slate-400 uppercase font-black tracking-[0.2em] mb-1">Lifetime Access</span>
+                        <span className="text-xl font-black text-slate-900">
+                           {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                        </span>
+                      </div>
+                      <button 
+                        onClick={() => handlePurchase(item)}
+                        className="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gold transition-all active:scale-95 shadow-lg"
+                      >
+                        Beli Akses
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="col-span-full">
+                <div className="bg-stone-50 rounded-[3rem] border-2 border-dashed border-stone-200 p-20 text-center opacity-60">
+                   <p className="text-4xl md:text-6xl font-serif font-black text-slate-300 mb-4">COMING SOON</p>
+                   <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-slate-400">Materi eksklusif sedang dalam proses produksi.</p>
+                </div>
               </div>
-            ))}
+            )}
           </div>
 
           {/* Pagination Controls */}
