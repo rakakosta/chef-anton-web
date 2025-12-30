@@ -8,7 +8,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Private Konsultasi', href: '#consultancy' },
 ];
 
-export const WHATSAPP_NUMBER = "628123456789";
+export const WHATSAPP_NUMBER = "6281802049331";
 
 export const STOCK_IMAGES = {
   CHEF_MAIN: "https://images.unsplash.com/photo-1556911261-6bd741557938?q=80&w=1200&auto=format&fit=crop",
