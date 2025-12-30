@@ -20,21 +20,28 @@ const TopLineProgressBar = () => {
   const location = useLocation();
   const [width, setWidth] = useState(0);
   const [visible, setVisible] = useState(false);
+  const [opacity, setOpacity] = useState(0);
 
   useEffect(() => {
-    // Trigger progress on route change
+    // Start progress animation on route change
+    setOpacity(1);
     setVisible(true);
     setWidth(0);
     
-    // Start animation
-    const timerStart = setTimeout(() => setWidth(100), 10);
+    // Smoothly animate to 100%
+    const timerStart = setTimeout(() => {
+      setWidth(100);
+    }, 50);
     
-    // Hide after animation complete
+    // Fade out and reset after animation completes (800ms - 1s)
     const timerEnd = setTimeout(() => {
-      setVisible(false);
-      // Reset width for next transition after it's hidden
-      setTimeout(() => setWidth(0), 400);
-    }, 1000);
+      setOpacity(0);
+      const timerHide = setTimeout(() => {
+        setVisible(false);
+        setWidth(0);
+      }, 400);
+      return () => clearTimeout(timerHide);
+    }, 900);
 
     return () => {
       clearTimeout(timerStart);
@@ -42,13 +49,15 @@ const TopLineProgressBar = () => {
     };
   }, [location.pathname]);
 
+  if (!visible) return null;
+
   return (
     <div 
-      className={`fixed top-0 left-0 h-[3px] bg-gold z-[10000] progress-bar-transition`}
+      className="fixed top-0 left-0 h-[3px] bg-gold z-[10000] progress-bar-transition pointer-events-none"
       style={{ 
         width: `${width}%`,
-        opacity: visible ? 1 : 0,
-        boxShadow: '0 0 10px rgba(212, 175, 55, 0.5)'
+        opacity: opacity,
+        boxShadow: '0 0 10px rgba(212, 175, 55, 0.6)'
       }}
     />
   );
@@ -171,7 +180,7 @@ const HomeView = ({ data }: { data: CMSData }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {(data.recordedClasses || []).length > 0 ? (
               (data.recordedClasses || []).slice(0, 3).map(item => (
-                <div key={item.id} onClick={() => navigate(`/academy`)} className="cursor-pointer">
+                <div key={item.id} onClick={() => navigate(`/recorded-class/${item.id}`)} className="cursor-pointer">
                   <ClassCard item={item} />
                 </div>
               ))
@@ -221,7 +230,7 @@ const WorkshopDetailView = ({ data }: { data: CMSData }) => {
     return data.reviews.filter(r => r.category === 'Live Workshop');
   }, [data.reviews]);
 
-  if (!workshop && id !== 'active') {
+  if (!workshop) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-12 text-center">
         <h2 className="text-4xl font-serif mb-6">Sesi Tidak Ditemukan</h2>
@@ -237,6 +246,24 @@ const WorkshopDetailView = ({ data }: { data: CMSData }) => {
       reviews={reviews}
       onBack={() => navigate('/')}
       onViewWorkshop={(wsId) => navigate(`/workshop/${wsId}`)}
+    />
+  );
+};
+
+const AcademyDetailView = ({ data }: { data: CMSData }) => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  
+  const reviews = useMemo(() => data.reviews.filter(r => r.category === 'Kelas Rekaman'), [data.reviews]);
+  
+  // If ID is provided, it can be used for specific logic in RecordedClassDetail if needed
+  // For now, the RecordedClassDetail handles the catalog display
+  
+  return (
+    <RecordedClassDetail 
+      onBack={() => navigate('/')} 
+      reviews={reviews} 
+      recordedClasses={data.recordedClasses} 
     />
   );
 };
@@ -264,16 +291,16 @@ const AppContent = () => {
     init();
   }, []);
 
-  // Handle CMS view separately
   if (location.pathname === '/portal-chef') {
     return <AdminCMS onExit={() => navigate('/')} />;
   }
 
+  // Initial Data Loading
   if (loading && !data) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center">
-        <div className="w-16 h-16 border-4 border-gold border-t-transparent rounded-full animate-spin mb-6"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 italic">Chef Anton is preparing the kitchen...</p>
+        <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Preparing the Kitchen...</p>
       </div>
     );
   }
@@ -299,7 +326,8 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<HomeView data={finalData} />} />
         <Route path="/workshop/:id" element={<WorkshopDetailView data={finalData} />} />
-        <Route path="/academy" element={<RecordedClassDetail onBack={() => navigate('/')} reviews={finalData.reviews.filter(r => r.category === 'Kelas Rekaman')} recordedClasses={finalData.recordedClasses} />} />
+        <Route path="/academy" element={<AcademyDetailView data={finalData} />} />
+        <Route path="/recorded-class/:id" element={<AcademyDetailView data={finalData} />} />
         <Route path="/consultancy" element={<ConsultancyDetail onBack={() => navigate('/')} reviews={finalData.reviews.filter(r => r.category === 'Private Consultancy')} partners={finalData.partners} />} />
       </Routes>
 
