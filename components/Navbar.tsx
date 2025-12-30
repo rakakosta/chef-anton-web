@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { NAV_ITEMS } from '../constants';
 
 interface NavbarProps {
@@ -11,12 +12,23 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onWorkshopClick, onRecordedClick, onConsultancyClick }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavClick = (e: React.MouseEvent, item: any) => {
+    e.preventDefault();
+    setIsOpen(false);
+    
+    if (item.label === 'Home') onHomeClick?.();
+    else if (item.label === 'Live Workshop') onWorkshopClick?.();
+    else if (item.label === 'Kelas Rekaman') onRecordedClick?.();
+    else if (item.label === 'Private Konsultasi') onConsultancyClick?.();
+  };
 
   return (
-    <nav className="fixed w-full z-50 bg-white/90 backdrop-blur-md border-b border-stone-100">
+    <nav className="fixed w-full z-[5000] bg-white/90 backdrop-blur-md border-b border-stone-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20 items-center">
-          <div className="flex-shrink-0 cursor-pointer" onClick={onHomeClick}>
+          <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate('/')}>
             <span className="text-xl md:text-2xl font-black tracking-tighter text-slate-900 font-serif uppercase">
               CHEF<span className="text-gold ml-1">ANTON PRADIPTA</span>
             </span>
@@ -28,21 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onWorkshopClick, onRecorde
                 key={item.label}
                 href={item.href}
                 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-gold transition-colors duration-200"
-                onClick={(e) => {
-                  if (item.label === 'Home' && onHomeClick) {
-                    e.preventDefault();
-                    onHomeClick();
-                  } else if (item.label === 'Live Workshop' && onWorkshopClick) {
-                    e.preventDefault();
-                    onWorkshopClick();
-                  } else if (item.label === 'Kelas Rekaman' && onRecordedClick) {
-                    e.preventDefault();
-                    onRecordedClick();
-                  } else if (item.label === 'Private Konsultasi' && onConsultancyClick) {
-                    e.preventDefault();
-                    onConsultancyClick();
-                  }
-                }}
+                onClick={(e) => handleNavClick(e, item)}
               >
                 {item.label}
               </a>
@@ -74,22 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ onHomeClick, onWorkshopClick, onRecorde
                 key={item.label}
                 href={item.href}
                 className="block px-3 py-4 text-sm font-bold text-slate-600 hover:bg-stone-50 hover:text-gold border-b border-stone-50"
-                onClick={(e) => {
-                  setIsOpen(false);
-                  if (item.label === 'Home' && onHomeClick) {
-                    e.preventDefault();
-                    onHomeClick();
-                  } else if (item.label === 'Live Workshop' && onWorkshopClick) {
-                    e.preventDefault();
-                    onWorkshopClick();
-                  } else if (item.label === 'Kelas Rekaman' && onRecordedClick) {
-                    e.preventDefault();
-                    onRecordedClick();
-                  } else if (item.label === 'Private Konsultasi' && onConsultancyClick) {
-                    e.preventDefault();
-                    onConsultancyClick();
-                  }
-                }}
+                onClick={(e) => handleNavClick(e, item)}
               >
                 {item.label}
               </a>
