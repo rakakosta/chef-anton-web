@@ -121,11 +121,11 @@ const RecordedClassDetail: React.FC<Props> = ({ onBack, reviews, recordedClasses
                 </div>
               ))
             ) : (
-              <div className="col-span-full">
-                <div className="bg-stone-50 rounded-[3rem] border-2 border-dashed border-stone-200 p-20 text-center opacity-60">
-                   <p className="text-4xl md:text-6xl font-serif font-black text-slate-300 mb-4">COMING SOON</p>
-                   <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-slate-400">Materi eksklusif sedang dalam proses produksi.</p>
-                </div>
+              /* Kartu Coming Soon sebagai Item Grid Tunggal dengan Aspek Rasio Portrait */
+              <div className="bg-slate-50 aspect-[3/4] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-8 text-center transition-all">
+                <span className="text-4xl mb-4">🔒</span>
+                <p className="text-xl md:text-3xl font-serif font-black text-slate-300 mb-2 uppercase tracking-tighter">COMING SOON</p>
+                <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-slate-400 leading-relaxed max-w-[200px]">Materi eksklusif sedang dalam proses produksi.</p>
               </div>
             )}
           </div>

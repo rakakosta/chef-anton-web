@@ -210,17 +210,11 @@ const App: React.FC = () => {
               {(finalCmsData.recordedClasses || []).length > 0 ? (
                 (finalCmsData.recordedClasses || []).slice(0, 3).map(item => <ClassCard key={item.id} item={item} />)
               ) : (
-                <div className="col-span-full">
-                  <div className="bg-white rounded-[2rem] md:rounded-[3rem] overflow-hidden shadow-lg border border-stone-100 opacity-60 flex flex-col">
-                    <div className="aspect-[4/3] bg-stone-200 flex flex-col items-center justify-center p-10 text-center">
-                      <p className="text-3xl md:text-4xl font-serif font-black text-slate-400 mb-2">COMING SOON</p>
-                      <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.2em] text-slate-400">Materi eksklusif sedang dalam proses produksi.</p>
-                    </div>
-                    <div className="p-8 md:p-10 space-y-4">
-                      <div className="h-4 bg-stone-100 rounded-full w-3/4"></div>
-                      <div className="h-4 bg-stone-100 rounded-full w-1/2"></div>
-                    </div>
-                  </div>
+                /* Kartu Coming Soon sebagai Item Grid Tunggal */
+                <div className="bg-slate-50 aspect-[3/4] rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-8 text-center transition-all">
+                  <span className="text-4xl mb-4">🔒</span>
+                  <p className="text-xl md:text-2xl font-serif font-black text-slate-400 mb-2 uppercase tracking-tighter">COMING SOON</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 leading-relaxed">Materi eksklusif sedang dalam proses produksi.</p>
                 </div>
               )}
             </div>
